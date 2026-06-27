@@ -3182,13 +3182,26 @@ function importarFicheiro(file){
 var FB_SDK_VER = "11.6.1";
 var fb = { app:null, db:null, ref:null, ligado:false, empurrarTimer:null, obrasCache:null, pendenteObras:null, ultimoTS:0 };
 
-/* Carimbo temporal local — actualizado sempre que este dispositivo
-   escreve dados. Serve apenas para que o eco do nosso próprio envio
-   seja reconhecido (ver aplicarRemoto). */
+/* Carimbo temporal local dos dados (versão). É usado para resolver conflitos:
+   quem tiver o carimbo mais recente "ganha". Assim, dados antigos na nuvem
+   deixam de poder sobrepor-se a dados recentes deste aparelho. */
 function lerLocalTS(){ try{ var v=parseInt(localStorage.getItem("tkd_data_ts")||"0",10); return isNaN(v)?0:v; }catch(e){ return 0; } }
 function guardarLocalTS(t){ try{ localStorage.setItem("tkd_data_ts", String(t)); }catch(e){} fb.ultimoTS = t; }
-/* Inicializa o TS a 0 se ainda não existe — sem fingir que somos os mais recentes */
-(function iniciarTS(){ fb.ultimoTS = lerLocalTS(); })();
+/* Migração: na primeira utilização após esta correção, se ainda não existe
+   carimbo mas já há dados locais (o aparelho HUB tem as obras corretas),
+   marca "agora" para que estes dados sejam considerados os mais recentes e
+   passem a ser a verdade na nuvem na próxima sincronização. */
+(function migrarTS(){
+  try{
+    if(lerLocalTS() === 0){
+      var temObras = false;
+      try{ var d=localStorage.getItem("obras_acompanhamento_v4"); temObras = !!(d && d.length>2); }catch(e){}
+      var temDocs = false;
+      try{ temDocs = (lerDocs()||[]).length > 0; }catch(e){}
+      if(temObras || temDocs){ guardarLocalTS(Date.now()); }
+    } else { fb.ultimoTS = lerLocalTS(); }
+  }catch(e){}
+})();
 
 function deviceId(){ var id; try{ id=localStorage.getItem("tkd_device"); }catch(e){} if(!id){ id="dev_"+Math.random().toString(36).slice(2,10); try{ localStorage.setItem("tkd_device", id); }catch(e){} } return id; }
 function lerConfigFB(){ try{ var r=localStorage.getItem("tkd_fb_config"); return r?JSON.parse(r):null; }catch(e){ return null; } }
@@ -3304,55 +3317,69 @@ function sincronizarAgora(){ guardarLocalTS(Date.now()); if(fb.ligado) empurrar(
 function aplicarRemoto(val){
   if(!val){ if(fb.ligado) empurrar(); return; }
 
-  /* Ignorar o eco do nosso próprio envio — a Firebase devolve sempre o que
-     escrevemos; sem este guarda entrávamos num loop infinito. */
+  /* Ignorar o eco do nosso próprio envio */
   if(val.origem === deviceId()){
     var meuTS = val.updatedAt || 0;
     if(meuTS > lerLocalTS()) guardarLocalTS(meuTS);
     return;
   }
 
-  /* ── ESTRATÉGIA: CONFIAR NA FIREBASE ───────────────────────────────────
-     Se chegámos aqui, outro dispositivo escreveu na nuvem. A Firebase
-     só dispara onValue quando há uma mudança real, por isso aplicamos
-     sempre — sem comparar timestamps locais.
+  var remoteTS = val.updatedAt || 0;
+  var localTS  = lerLocalTS();
 
-     A comparação localTS > remoteTS foi REMOVIDA porque era a causa do bug
-     "PC como master": o PC tinha sempre o TS mais alto (era o último a editar
-     ou tinha sido inicializado com Date.now()), logo descartava todas as
-     actualizações dos telefones e reescrevia a nuvem com os seus dados.
+  /* ── ESTRATÉGIA: LAST-WRITER-WINS ──────────────────────────────────────
+     A Firebase é a fonte de verdade. O dispositivo que escreveu por último
+     (remoteTS > localTS) ganha — sem merge, sem ressurreição de registos.
+     O merge por ID foi removido porque impedia eliminações de se propagarem:
+     uma obra apagada no dispositivo A era re-adicionada pelo merge do B.
+
+     A única excepção é proteger contra sobrescrever dados reais com um
+     payload vazio/nulo vindo de um dispositivo que ainda não carregou o
+     iframe de obras (obrasStore nulo ou array vazio "[]").
      ────────────────────────────────────────────────────────────────────── */
 
-  var remoteTS = val.updatedAt || 0;
+  /* Se os dados remotos são mais antigos que os nossos, reenviamos os
+     nossos para corrigir a nuvem e não fazemos mais nada. */
+  if(localTS && remoteTS < localTS){
+    if(fb.ligado) empurrar();
+    return;
+  }
 
-  /* Obras */
+  /* Aplica dados remotos — eles são mais recentes (ou igual, desempate
+     pelo dispositivo remoto que acabou de escrever). */
+
+  /* Obras: aplica directamente sem merge */
   var novoStore = val.obras || null;
 
-  /* Se o remetente não tinha o iframe aberto, o seu payload não inclui obras.
-     Nesse caso mantemos o que já temos — não apagamos obras por causa de
-     um envio incompleto de outro dispositivo. */
+  /* Protecção: se o payload remoto não tem obras (o dispositivo remoto enviou
+     sem o iframe carregado), não sobrescrevemos o que já existe localmente. */
   if(novoStore === null && fb.obrasCache !== null){
-    novoStore = fb.obrasCache;
+    novoStore = fb.obrasCache; /* mantém o que temos */
   }
 
   if(novoStore !== fb.obrasCache){
     fb.obrasCache = novoStore;
     if(vistaAtual === "view-obras"){
+      /* Está na vista obras: injecta directamente no iframe */
       enviarObras({store: novoStore, seq: val.obrasSeq||null});
       toast("Obras actualizadas.");
     } else if(obrasCarregado){
+      /* Iframe carregado mas não visível: actualiza silenciosamente */
       enviarObras({store: novoStore, seq: val.obrasSeq||null});
     } else {
+      /* Iframe não foi ainda carregado: guarda para aplicar ao abrir */
       fb.pendenteObras = {store: novoStore, seq: val.obrasSeq||null};
     }
-    marcarNovidades(false);
+    marcarNovidades(false); /* já aplicou — não mostrar botão de actualizar */
   }
 
-  /* Facturas/docs */
-  try{ if(val.docs != null) guardarDocs(val.docs); }catch(e){}
+  /* Facturas/docs: aplica directamente */
+  try{
+    if(val.docs != null) guardarDocs(val.docs);
+  }catch(e){}
 
-  if(val.seqFactura   != null) guardarSeq("factura",    val.seqFactura);
-  if(val.seqOrcamento != null) guardarSeq("orcamento",  val.seqOrcamento);
+  if(val.seqFactura  != null) guardarSeq("factura",    val.seqFactura);
+  if(val.seqOrcamento!= null) guardarSeq("orcamento",  val.seqOrcamento);
   if(val.clientes) guardarClientes(mesclarRegistos(lerClientes(), val.clientes, "nome"));
   if(val.itens)    guardarItens(mesclarRegistos(lerItens(),       val.itens,    "desc"));
   if(typeof actualizarDatalists === "function") actualizarDatalists();
@@ -3361,9 +3388,9 @@ function aplicarRemoto(val){
   var ov = document.getElementById("arq-overlay");
   if(ov && ov.classList.contains("aberto")) renderArquivo(arqTabAtual);
 
-  /* Adopta o TS remoto para que a próxima edição local produza um TS superior
-     e assim as nossas próximas alterações ganhem correctamente. */
-  if(remoteTS > lerLocalTS()) guardarLocalTS(remoteTS);
+  /* Adopta o TS remoto (é o mais recente) */
+  guardarLocalTS(remoteTS);
+  /* NÃO reenviamos — não há merge, não há nada de novo para propagar */
 }
 
 /* ouvir alterações vindas do iframe de obras -> empurrar para a nuvem */
