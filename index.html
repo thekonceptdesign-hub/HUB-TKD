@@ -63,6 +63,14 @@ body.dark .fx-seg{ background:rgba(255,255,255,0.07); }
 body.dark .fx-seg button.on{ background:rgba(200,165,90,0.2); color:var(--preto); }
 body.dark .arq-tabs button{ background:rgba(255,255,255,0.06); color:var(--cinza); }
 body.dark .arq-tabs button.on{ background:rgba(22,18,13,0.98); color:var(--preto); }
+/* calculadora (folha) em modo escuro */
+body.dark .calc-total-row{ background:rgba(200,165,90,0.16); color:var(--preto); border:1px solid rgba(200,165,90,0.3); }
+body.dark .calc-linha input{ background:rgba(255,255,255,0.06); border-color:rgba(200,165,90,0.18); color:var(--preto); }
+body.dark .calc-linha input:focus{ background:rgba(255,255,255,0.1); border-color:var(--dourado); }
+body.dark .calc-sugestoes{ background:rgba(28,24,18,0.98); border-color:rgba(200,165,90,0.25); }
+body.dark .calc-guardado-row{ background:rgba(255,255,255,0.05); }
+body.dark .calc-guardado-acoes button{ background:rgba(255,255,255,0.08); color:var(--preto); }
+body.dark .calc-btn-acao.lista{ background:rgba(200,165,90,0.18); color:var(--dourado); }
 
 /* transição suave ao trocar tema */
 body, body *{ transition-property:background-color,border-color,color,box-shadow,background; transition-duration:0.35s; transition-timing-function:var(--ease); }
@@ -468,22 +476,129 @@ body.dark .cr-gt-head th{ background:rgba(18,14,9,0.96); }
 .fx-calc-abrir{ margin-top:10px; width:100%; border:1px solid rgba(184,147,82,0.4); background:rgba(184,147,82,0.12); color:var(--tijolo,#9C5A2E); border-radius:999px; padding:10px; font-family:inherit; font-weight:700; font-size:0.82rem; cursor:pointer; transition:background 0.2s; }
 .fx-calc-abrir:hover{ background:rgba(184,147,82,0.22); }
 
+/* Calculadora global — botão flutuante visível em todas as janelas */
+.calc-fab-global{
+  position:fixed;
+  right:18px;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  width:56px; height:56px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(145deg, #3C2A1A 0%, #2A1C10 60%, #1E140B 100%);
+  color:#F3EAD9;
+  border:1px solid rgba(216,184,119,0.45);
+  box-shadow:var(--sombra-lg);
+  cursor:pointer;
+  z-index:150;
+  transition:transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s;
+}
+.calc-fab-global svg{ width:26px; height:26px; }
+.calc-fab-global:hover{ transform:scale(1.08); box-shadow:var(--sombra-xl); }
+.calc-fab-global:active{ transform:scale(0.94); }
+body.dark .calc-fab-global{ background:linear-gradient(145deg,#2A2218 0%,#1C1710 60%,#141009 100%); border-color:rgba(200,165,90,0.4); }
+@media (max-width:560px){
+  .calc-fab-global{ width:50px; height:50px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); }
+  .calc-fab-global svg{ width:23px; height:23px; }
+}
+/* sobe a calculadora acima de outros painéis do HUB */
+
 /* Calculadora dos documentos */
-.calc-doc-overlay{ position:fixed; inset:0; z-index:140; display:none; align-items:center; justify-content:center; padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:rgba(20,18,14,0.5); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+.calc-doc-overlay{ position:fixed; inset:0; z-index:170; display:none; align-items:center; justify-content:center; padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:rgba(20,18,14,0.5); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 .calc-doc-overlay.aberto{ display:flex; }
-.calc-doc-modal{ width:300px; max-width:100%; background:var(--branco-vidro-forte,rgba(255,252,245,0.95)); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); border:1px solid rgba(255,255,255,0.6); border-radius:22px; box-shadow:0 16px 46px rgba(40,26,12,0.28); padding:18px; }
+.calc-doc-modal{ width:560px; max-width:100%; max-height:calc(100vh - 40px); overflow-y:auto; background:var(--branco-vidro-forte,rgba(255,252,245,0.95)); backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); border:1px solid rgba(255,255,255,0.6); border-radius:22px; box-shadow:0 16px 46px rgba(40,26,12,0.28); padding:18px; }
 .calc-doc-top{ display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:0.95rem; color:var(--preto,#26190F); margin-bottom:12px; }
 .calc-doc-x{ background:rgba(0,0,0,0.06); border:none; width:30px; height:30px; border-radius:9px; cursor:pointer; font-size:0.85rem; color:var(--preto,#26190F); }
 .calc-doc-x:hover{ background:rgba(0,0,0,0.12); }
-.calc-doc-display{ background:var(--preto,#26190F); color:#fff; font-size:1.8rem; font-weight:700; text-align:right; padding:18px 16px; border-radius:14px; margin-bottom:12px; word-break:break-all; min-height:32px; }
-.calc-doc-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-.cdb{ border:none; border-radius:13px; padding:15px 0; font-size:1.1rem; font-weight:700; cursor:pointer; background:rgba(0,0,0,0.05); color:var(--preto,#26190F); font-family:inherit; transition:background 0.15s, transform 0.1s; }
-.cdb:active{ transform:scale(0.94); }
-.cdb:hover{ background:rgba(0,0,0,0.1); }
-.cdb.op{ background:var(--laranja-bg,#F3E1C4); color:var(--laranja,#B0712C); }
-.cdb.eq{ background:var(--preto,#26190F); color:#fff; }
-.cdb.clear{ background:var(--vermelho-bg,#F3E0D3); color:var(--vermelho,#A0492F); }
-.cdb.wide{ grid-column:span 2; }
+
+/* ---- folha de cálculo ---- */
+.calc-sheet-head{ display:grid; grid-template-columns:1fr 56px 96px 96px 30px; gap:6px; padding:0 4px 6px; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--cinza,#897764); font-weight:800; }
+.calc-sheet-head .c-qtd, .calc-sheet-head .c-preco, .calc-sheet-head .c-sub{ text-align:right; }
+.calc-sheet-linhas{ display:flex; flex-direction:column; gap:6px; }
+.calc-linha{ display:grid; grid-template-columns:1fr 56px 96px 96px 30px; gap:6px; align-items:center; }
+.calc-linha input{ border:1px solid var(--linha,#E8DBC4); border-radius:10px; padding:9px 9px; font-size:0.9rem; font-family:inherit; color:var(--preto,#26190F); background:rgba(255,255,255,0.7); width:100%; transition:border-color 0.2s, background 0.2s; }
+.calc-linha input:focus{ outline:none; border-color:var(--preto,#26190F); background:#fff; }
+.calc-linha .ci-item{ position:relative; }
+.calc-linha input.ci-qtd, .calc-linha input.ci-preco{ text-align:right; }
+.calc-linha .ci-sub{ text-align:right; font-size:0.9rem; font-weight:800; color:var(--preto,#26190F); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:2px; }
+.calc-linha .ci-del{ background:none; border:none; color:var(--cinza-claro,#B6A78C); cursor:pointer; font-size:1rem; width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:background 0.2s, color 0.2s; }
+.calc-linha .ci-del:hover{ color:var(--vermelho,#A0492F); background:var(--vermelho-bg,#F3E0D3); }
+
+/* sugestões de autocompletar */
+.calc-sugestoes{ position:absolute; top:100%; left:0; right:0; z-index:5; margin-top:4px; background:var(--branco-vidro-forte,#fff); border:1px solid var(--linha-forte,#D8C5A4); border-radius:12px; box-shadow:var(--sombra-lg); overflow:hidden; max-height:190px; overflow-y:auto; display:none; }
+.calc-sugestoes.aberto{ display:block; }
+.calc-sug-item{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 11px; cursor:pointer; font-size:0.85rem; border-bottom:1px solid var(--linha,#E8DBC4); }
+.calc-sug-item:last-child{ border-bottom:none; }
+.calc-sug-item:hover{ background:rgba(184,147,82,0.12); }
+.calc-sug-nome{ font-weight:600; color:var(--preto,#26190F); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.calc-sug-preco{ flex-shrink:0; font-weight:700; color:var(--tijolo,#9C5A2E); }
+
+.calc-add-linha{ margin-top:10px; width:100%; border:1.5px dashed var(--cinza-claro,#B6A78C); background:rgba(255,255,255,0.4); color:var(--cinza,#897764); border-radius:12px; padding:11px; font-family:inherit; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s var(--ease); }
+.calc-add-linha:hover{ border-color:var(--preto,#26190F); color:var(--preto,#26190F); background:rgba(255,255,255,0.7); }
+
+.calc-total-row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding:14px 16px; border-radius:14px; background:var(--preto,#26190F); color:#fff; }
+.calc-total-row .lbl{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.7px; font-weight:700; opacity:0.85; }
+.calc-total-row .val{ font-size:1.45rem; font-weight:800; letter-spacing:0.2px; }
+
+.calc-guardar-ajuda{ font-size:0.84rem; color:var(--cinza,#897764); margin:0 0 12px; line-height:1.5; }
+.calc-guardar-input{ width:100%; border:1px solid var(--linha,#E8DBC4); border-radius:12px; padding:11px 12px; font-size:0.95rem; font-family:inherit; color:var(--preto,#26190F); background:rgba(255,255,255,0.7); }
+.calc-guardar-input:focus{ outline:none; border-color:var(--preto,#26190F); background:#fff; box-shadow:0 0 0 3px rgba(13,13,13,0.06); }
+body.dark .calc-guardar-input{ background:rgba(255,255,255,0.06); border-color:rgba(200,165,90,0.18); color:var(--preto); }
+
+/* alternador discreto entre folha e calculadora simples */
+.calc-modo{ display:flex; gap:6px; margin-bottom:12px; background:rgba(0,0,0,0.05); border-radius:999px; padding:3px; }
+body.dark .calc-modo{ background:rgba(255,255,255,0.06); }
+.calc-modo button{ flex:1; border:none; background:transparent; border-radius:999px; padding:7px 10px; font-family:inherit; font-size:0.78rem; font-weight:700; color:var(--cinza,#897764); cursor:pointer; transition:background 0.2s, color 0.2s; }
+.calc-modo button.on{ background:var(--branco,#FFFCF5); color:var(--preto,#26190F); box-shadow:var(--sombra-sm,0 1px 2px rgba(48,33,16,0.09)); }
+body.dark .calc-modo button.on{ background:rgba(200,165,90,0.22); color:var(--preto); }
+
+/* calculadora simples (teclado) */
+.calc-simples{ display:none; }
+.calc-simples.on{ display:block; }
+.calc-simples-display{ background:var(--preto,#26190F); color:#fff; font-size:1.9rem; font-weight:700; text-align:right; padding:18px 16px; border-radius:14px; margin-bottom:12px; word-break:break-all; min-height:34px; }
+body.dark .calc-simples-display{ background:rgba(200,165,90,0.16); color:var(--preto); border:1px solid rgba(200,165,90,0.3); }
+.calc-simples-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.csb{ border:none; border-radius:13px; padding:16px 0; font-size:1.15rem; font-weight:700; cursor:pointer; background:rgba(0,0,0,0.05); color:var(--preto,#26190F); font-family:inherit; transition:background 0.15s, transform 0.1s; }
+body.dark .csb{ background:rgba(255,255,255,0.06); color:var(--preto); }
+.csb:active{ transform:scale(0.94); }
+.csb:hover{ background:rgba(0,0,0,0.1); }
+.csb.op{ background:var(--laranja-bg,#F3E1C4); color:var(--laranja,#B0712C); }
+.csb.eq{ background:var(--preto,#26190F); color:#fff; }
+body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
+.csb.clear{ background:var(--vermelho-bg,#F3E0D3); color:var(--vermelho,#A0492F); }
+.csb.wide{ grid-column:span 2; }
+/* esconde a parte da folha quando em modo simples */
+.calc-folha.oculto{ display:none; }
+
+.calc-acoes{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+.calc-btn-acao{ flex:1; min-width:96px; border:none; border-radius:999px; padding:11px 12px; font-family:inherit; font-weight:700; font-size:0.82rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s, transform 0.15s var(--ease); }
+.calc-btn-acao:active{ transform:scale(0.96); }
+.calc-btn-acao.guardar{ background:var(--verde,#5C6B43); color:#fff; }
+.calc-btn-acao.guardar:hover{ background:#4b5836; }
+.calc-btn-acao.lista{ background:rgba(184,147,82,0.16); color:var(--tijolo,#9C5A2E); }
+.calc-btn-acao.lista:hover{ background:rgba(184,147,82,0.3); }
+.calc-btn-acao.limpar{ flex:0 0 auto; min-width:0; background:var(--vermelho-bg,#F3E0D3); color:var(--vermelho,#A0492F); }
+.calc-btn-acao.limpar:hover{ background:#ecd0ca; }
+.calc-btn-acao .cnt{ background:var(--preto,#26190F); color:#fff; border-radius:999px; min-width:19px; height:19px; padding:0 5px; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem; }
+
+/* lista de cálculos guardados */
+.calc-guardados-lista{ display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto; }
+.calc-guardados-vazio{ text-align:center; color:var(--cinza-claro,#B6A78C); font-size:0.9rem; padding:24px 8px; }
+.calc-guardado-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.04); border-radius:13px; padding:11px 13px; }
+.calc-guardado-info{ flex:1; min-width:0; cursor:pointer; }
+.calc-guardado-nome{ font-weight:700; font-size:0.92rem; color:var(--preto,#26190F); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.calc-guardado-meta{ font-size:0.74rem; color:var(--cinza,#897764); margin-top:2px; }
+.calc-guardado-acoes{ display:flex; gap:6px; flex-shrink:0; }
+.calc-guardado-acoes button{ border:none; cursor:pointer; width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; background:rgba(0,0,0,0.06); color:var(--preto,#26190F); transition:background 0.2s, color 0.2s; }
+.calc-guardado-acoes .abrir:hover{ background:rgba(184,147,82,0.25); }
+.calc-guardado-acoes .apagar:hover{ background:var(--vermelho,#A0492F); color:#fff; }
+
+@media (max-width:560px){
+  .calc-sheet-head{ grid-template-columns:1fr 44px 78px 78px 26px; gap:4px; font-size:0.56rem; }
+  .calc-linha{ grid-template-columns:1fr 44px 78px 78px 26px; gap:4px; }
+  .calc-linha input{ padding:8px 6px; font-size:0.84rem; }
+  .calc-linha .ci-sub{ font-size:0.8rem; }
+  .calc-total-row .val{ font-size:1.2rem; }
+}
 
 /* pré-visualização */
 .fx-preview{ background:#EAE0CE; border-radius:var(--radius-lg); box-shadow:var(--sombra-lg); overflow:hidden; display:flex; flex-direction:column; }
@@ -1161,37 +1276,112 @@ body.dark .cr-gt-head th{ background:rgba(18,14,9,0.96); }
       </div>
     </div>
 
-    <div class="calc-doc-overlay" id="calc-doc-overlay" onclick="if(event.target===this)fecharCalcDoc()">
+  </section>
+
+  <!-- ===== Calculadora global (visível em todas as janelas do HUB) ===== -->
+  <button class="calc-fab-global" id="calc-fab-global" title="Calculadora" aria-label="Abrir calculadora" onclick="abrirCalcDoc()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="3"  y1="7"  x2="9"  y2="7"/>
+      <line x1="15" y1="7"  x2="21" y2="7"/>
+      <line x1="18" y1="4"  x2="18" y2="10"/>
+      <line x1="4.5" y1="15.5" x2="8.5" y2="19.5"/>
+      <line x1="8.5" y1="15.5" x2="4.5" y2="19.5"/>
+      <line x1="15" y1="16" x2="21" y2="16"/>
+      <line x1="15" y1="19.5" x2="21" y2="19.5"/>
+    </svg>
+  </button>
+
+  <div class="calc-doc-overlay" id="calc-doc-overlay" onclick="if(event.target===this)fecharCalcDoc()">
       <div class="calc-doc-modal">
         <div class="calc-doc-top">
-          <span>&#129518; Calculadora</span>
+          <span id="calc-doc-titulo">&#129518; Calculadora</span>
           <button class="calc-doc-x" onclick="fecharCalcDoc()">&#10005;</button>
         </div>
-        <div class="calc-doc-display" id="calc-doc-display">0</div>
-        <div class="calc-doc-grid">
-          <button class="cdb clear" onclick="calcDocClear()">C</button>
-          <button class="cdb op" onclick="calcDocInput('%')">%</button>
-          <button class="cdb op" onclick="calcDocBackspace()">&#9003;</button>
-          <button class="cdb op" onclick="calcDocInput('/')">&divide;</button>
-          <button class="cdb" onclick="calcDocInput('7')">7</button>
-          <button class="cdb" onclick="calcDocInput('8')">8</button>
-          <button class="cdb" onclick="calcDocInput('9')">9</button>
-          <button class="cdb op" onclick="calcDocInput('*')">&times;</button>
-          <button class="cdb" onclick="calcDocInput('4')">4</button>
-          <button class="cdb" onclick="calcDocInput('5')">5</button>
-          <button class="cdb" onclick="calcDocInput('6')">6</button>
-          <button class="cdb op" onclick="calcDocInput('-')">&minus;</button>
-          <button class="cdb" onclick="calcDocInput('1')">1</button>
-          <button class="cdb" onclick="calcDocInput('2')">2</button>
-          <button class="cdb" onclick="calcDocInput('3')">3</button>
-          <button class="cdb op" onclick="calcDocInput('+')">+</button>
-          <button class="cdb wide" onclick="calcDocInput('0')">0</button>
-          <button class="cdb" onclick="calcDocInput('.')">,</button>
-          <button class="cdb eq" onclick="calcDocEquals()">=</button>
+
+        <div class="calc-modo">
+          <button id="calc-modo-folha" class="on" onclick="calcSetModo('folha')">&#129518; Folha de cálculo</button>
+          <button id="calc-modo-simples" onclick="calcSetModo('simples')">&#128425; Calculadora</button>
+        </div>
+
+        <div class="calc-folha" id="calc-folha">
+        <div class="calc-sheet-head">
+          <span class="c-item">Item</span>
+          <span class="c-qtd">Qtd</span>
+          <span class="c-preco">Preço unit.</span>
+          <span class="c-sub">Subtotal</span>
+          <span class="c-x"></span>
+        </div>
+
+        <div class="calc-sheet-linhas" id="calc-sheet-linhas"></div>
+
+        <button class="calc-add-linha" onclick="calcAddLinha()">+ Adicionar item</button>
+
+        <div class="calc-total-row">
+          <span class="lbl">Total geral</span>
+          <span class="val" id="calc-total-geral">0,00 Kz</span>
+        </div>
+
+        <div class="calc-acoes">
+          <button class="calc-btn-acao guardar" onclick="calcGuardar()">&#128190; Guardar</button>
+          <button class="calc-btn-acao lista" onclick="abrirCalcGuardados()">&#128193; Cálculos <span class="cnt" id="calc-guardados-n">0</span></button>
+          <button class="calc-btn-acao limpar" onclick="calcLimpar()">Limpar</button>
+        </div>
+        </div>
+
+        <div class="calc-simples" id="calc-simples">
+          <div class="calc-simples-display" id="calc-simples-display">0</div>
+          <div class="calc-simples-grid">
+            <button class="csb clear" onclick="csInput('C')">C</button>
+            <button class="csb op" onclick="csInput('%')">%</button>
+            <button class="csb op" onclick="csInput('back')">&#9003;</button>
+            <button class="csb op" onclick="csInput('/')">&divide;</button>
+            <button class="csb" onclick="csInput('7')">7</button>
+            <button class="csb" onclick="csInput('8')">8</button>
+            <button class="csb" onclick="csInput('9')">9</button>
+            <button class="csb op" onclick="csInput('*')">&times;</button>
+            <button class="csb" onclick="csInput('4')">4</button>
+            <button class="csb" onclick="csInput('5')">5</button>
+            <button class="csb" onclick="csInput('6')">6</button>
+            <button class="csb op" onclick="csInput('-')">&minus;</button>
+            <button class="csb" onclick="csInput('1')">1</button>
+            <button class="csb" onclick="csInput('2')">2</button>
+            <button class="csb" onclick="csInput('3')">3</button>
+            <button class="csb op" onclick="csInput('+')">+</button>
+            <button class="csb wide" onclick="csInput('0')">0</button>
+            <button class="csb" onclick="csInput('.')">,</button>
+            <button class="csb eq" onclick="csInput('=')">=</button>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+
+    <!-- Lista de cálculos guardados -->
+    <div class="calc-doc-overlay" id="calc-guardados-overlay" onclick="if(event.target===this)fecharCalcGuardados()">
+      <div class="calc-doc-modal">
+        <div class="calc-doc-top">
+          <span>&#128193; Cálculos guardados</span>
+          <button class="calc-doc-x" onclick="fecharCalcGuardados()">&#10005;</button>
+        </div>
+        <div class="calc-guardados-lista" id="calc-guardados-lista"></div>
+      </div>
+    </div>
+
+    <!-- Dialogo: guardar cálculo com nome -->
+    <div class="calc-doc-overlay" id="calc-guardar-overlay" onclick="if(event.target===this)fecharGuardarCalc()">
+      <div class="calc-doc-modal" style="max-width:380px;">
+        <div class="calc-doc-top">
+          <span>&#128190; Guardar cálculo</span>
+          <button class="calc-doc-x" onclick="fecharGuardarCalc()">&#10005;</button>
+        </div>
+        <p class="calc-guardar-ajuda" id="calc-guardar-ajuda">Atribua um nome para arquivar este cálculo e consultá-lo depois.</p>
+        <input type="text" class="calc-guardar-input" id="calc-guardar-nome" placeholder="Ex.: Orçamento cozinha — Sr. António"
+          onkeydown="if(event.key==='Enter')confirmarGuardarCalc(); if(event.key==='Escape')fecharGuardarCalc();">
+        <div class="calc-acoes" style="margin-top:14px;">
+          <button class="calc-btn-acao limpar" style="flex:1;" onclick="fecharGuardarCalc()">Cancelar</button>
+          <button class="calc-btn-acao guardar" onclick="confirmarGuardarCalc()">&#10003; Guardar no arquivo</button>
+        </div>
+      </div>
+    </div>
 
   <div class="sync-overlay" id="sync-overlay" onclick="if(event.target===this)fecharSync()">
     <div class="sync-modal">
@@ -3721,44 +3911,321 @@ document.addEventListener("keydown", function(e){
   } else { arrancar(); }
 })();
 
-/* ====================== CALCULADORA DOS DOCUMENTOS ====================== */
-var calcDocExpr = "";
+/* ====================== CALCULADORA — FOLHA DE CÁLCULO ====================== */
+/* Estrutura de cada linha: { item, qtd, preco } (qtd e preco como texto) */
+var calcLinhas = [];
+var calcCarregadoNome = "";   /* nome do cálculo actualmente carregado (se houver) */
+
+/* --- persistência --- */
+function calcLerGuardados(){ try{ return JSON.parse(localStorage.getItem("tkd_calc_guardados")||"[]")||[]; }catch(e){ return []; } }
+function calcGuardarGuardados(arr){ try{ localStorage.setItem("tkd_calc_guardados", JSON.stringify(arr)); }catch(e){} }
+function calcLerCatalogo(){ try{ return JSON.parse(localStorage.getItem("tkd_calc_catalogo")||"[]")||[]; }catch(e){ return []; } }
+function calcGuardarCatalogo(arr){ try{ localStorage.setItem("tkd_calc_catalogo", JSON.stringify(arr)); }catch(e){} }
+
+/* regista/atualiza um item no catálogo (para autocompletar futuro) */
+function calcRegistarNoCatalogo(nome, preco){
+  nome = (nome||"").trim();
+  var p = parseFloat(preco);
+  if(!nome || isNaN(p) || p<=0) return;
+  var cat = calcLerCatalogo();
+  var chave = nome.toLowerCase();
+  var existente = cat.find(function(c){ return c.nome.toLowerCase()===chave; });
+  if(existente){ existente.preco = String(p); }
+  else { cat.push({ nome:nome, preco:String(p) }); }
+  calcGuardarCatalogo(cat);
+}
+
+function calcNum(v){ var n = parseFloat(String(v).replace(',', '.')); return isNaN(n)?0:n; }
+
 function abrirCalcDoc(){
-  calcDocExpr = "";
-  calcDocAtualizar();
+  if(calcLinhas.length===0){ calcLinhas = [ {item:"",qtd:"",preco:""} ]; calcCarregadoNome=""; }
+  calcRender();
   var ov = document.getElementById('calc-doc-overlay');
   if(ov) ov.classList.add('aberto');
 }
 function fecharCalcDoc(){
   var ov = document.getElementById('calc-doc-overlay');
   if(ov) ov.classList.remove('aberto');
+  fecharTodasSugestoes();
 }
-function calcDocAtualizar(){
-  var el = document.getElementById('calc-doc-display');
+
+function calcAddLinha(){
+  calcLinhas.push({ item:"", qtd:"", preco:"" });
+  calcRender();
+  setTimeout(function(){
+    var inputs = document.querySelectorAll('#calc-sheet-linhas .ci-item input');
+    if(inputs.length) inputs[inputs.length-1].focus();
+  }, 30);
+}
+function calcRemoverLinha(i){
+  calcLinhas.splice(i,1);
+  if(calcLinhas.length===0) calcLinhas.push({ item:"", qtd:"", preco:"" });
+  calcRender();
+}
+
+function calcSubtotal(l){ return calcNum(l.qtd) * calcNum(l.preco); }
+function calcTotalGeral(){ return calcLinhas.reduce(function(s,l){ return s + calcSubtotal(l); }, 0); }
+
+function calcEscapeAttr(s){ return String(s==null?"":s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function calcRender(){
+  var cont = document.getElementById('calc-sheet-linhas');
+  if(!cont) return;
+  cont.innerHTML = calcLinhas.map(function(l, i){
+    var sub = calcSubtotal(l);
+    var precoVal = l.preco!=="" ? formatarMoeda(l.preco) : "";
+    return ''
+      + '<div class="calc-linha">'
+      +   '<div class="ci-item">'
+      +     '<input type="text" placeholder="Descrição" value="'+calcEscapeAttr(l.item)+'" '
+      +        'oninput="calcCampo('+i+',\'item\',this.value); calcSugerir('+i+',this.value)" '
+      +        'onfocus="calcSugerir('+i+',this.value)" '
+      +        'onblur="setTimeout(fecharTodasSugestoes,150)">'
+      +     '<div class="calc-sugestoes" id="calc-sug-'+i+'"></div>'
+      +   '</div>'
+      +   '<input class="ci-qtd" type="text" inputmode="decimal" placeholder="0" value="'+calcEscapeAttr(l.qtd)+'" '
+      +      'oninput="calcCampo('+i+',\'qtd\',this.value)">'
+      +   '<input class="ci-preco" type="text" inputmode="decimal" placeholder="0,00" value="'+calcEscapeAttr(precoVal)+'" '
+      +      'onfocus="calcPrecoFocus('+i+',this)" '
+      +      'oninput="calcCampo('+i+',\'preco\',this.value)" '
+      +      'onblur="calcPrecoBlur('+i+',this)">'
+      +   '<span class="ci-sub">'+formatarKz(sub)+'</span>'
+      +   '<button class="ci-del" title="Remover" onclick="calcRemoverLinha('+i+')">&#10005;</button>'
+      + '</div>';
+  }).join('');
+
+  var tg = document.getElementById('calc-total-geral');
+  if(tg) tg.textContent = formatarKz(calcTotalGeral());
+
+  var tit = document.getElementById('calc-doc-titulo');
+  if(tit) tit.innerHTML = calcCarregadoNome ? ('&#129518; '+calcEscapeAttr(calcCarregadoNome)) : '&#129518; Calculadora';
+
+  var n = document.getElementById('calc-guardados-n');
+  if(n) n.textContent = calcLerGuardados().length;
+}
+
+function calcCampo(i, campo, valor){
+  if(!calcLinhas[i]) return;
+  calcLinhas[i][campo] = valor;
+  /* só recalcula subtotal/total sem re-render completo (preserva foco/cursor) */
+  var linhaEl = document.querySelectorAll('#calc-sheet-linhas .calc-linha')[i];
+  if(linhaEl){
+    var subEl = linhaEl.querySelector('.ci-sub');
+    if(subEl) subEl.textContent = formatarKz(calcSubtotal(calcLinhas[i]));
+  }
+  var tg = document.getElementById('calc-total-geral');
+  if(tg) tg.textContent = formatarKz(calcTotalGeral());
+}
+
+/* mostra número puro ao focar o preço, formata ao sair */
+function calcPrecoFocus(i, el){
+  var n = calcNum(calcLinhas[i].preco);
+  el.value = n===0 ? "" : String(n).replace('.', ',');
+}
+function calcPrecoBlur(i, el){
+  var n = calcNum(el.value);
+  calcLinhas[i].preco = n===0 ? "" : String(n);
+  el.value = n===0 ? "" : formatarMoeda(n);
+  calcCampo(i,'preco',calcLinhas[i].preco);
+}
+
+/* ---- autocompletar a partir do catálogo ---- */
+function fecharTodasSugestoes(){
+  document.querySelectorAll('.calc-sugestoes').forEach(function(s){ s.classList.remove('aberto'); s.innerHTML=''; });
+}
+function calcSugerir(i, texto){
+  var box = document.getElementById('calc-sug-'+i);
+  if(!box) return;
+  texto = (texto||"").trim().toLowerCase();
+  var cat = calcLerCatalogo();
+  var matches = cat.filter(function(c){ return texto==="" ? true : c.nome.toLowerCase().indexOf(texto)!==-1; })
+                   .sort(function(a,b){ return a.nome.localeCompare(b.nome); })
+                   .slice(0,6);
+  if(matches.length===0){ box.classList.remove('aberto'); box.innerHTML=''; return; }
+  box._matches = matches;
+  box.innerHTML = matches.map(function(c, mi){
+    return '<div class="calc-sug-item" onmousedown="calcUsarSugestao('+i+','+mi+')">'
+      + '<span class="calc-sug-nome">'+calcEscapeAttr(c.nome)+'</span>'
+      + '<span class="calc-sug-preco">'+formatarKz(c.preco)+'</span>'
+      + '</div>';
+  }).join('');
+  box.classList.add('aberto');
+}
+function calcUsarSugestao(i, mi){
+  var box = document.getElementById('calc-sug-'+i);
+  var c = box && box._matches ? box._matches[mi] : null;
+  if(!calcLinhas[i] || !c) return;
+  calcLinhas[i].item = c.nome;
+  calcLinhas[i].preco = String(calcNum(c.preco));
+  if(!calcLinhas[i].qtd) calcLinhas[i].qtd = "1";
+  fecharTodasSugestoes();
+  calcRender();
+  setTimeout(function(){ calcConfirmarPreco(i, c.nome, c.preco); }, 60);
+}
+function calcConfirmarPreco(i, nome, precoCatalogo){
+  /* foca o campo de preço para edição rápida e avisa */
+  var linhaEl = document.querySelectorAll('#calc-sheet-linhas .calc-linha')[i];
+  if(linhaEl){ var p = linhaEl.querySelector('.ci-preco'); if(p){ p.focus(); p.select && p.select(); } }
+  toast('Preço de "'+nome+'": '+formatarKz(precoCatalogo)+'. Altere o valor se mudou.');
+}
+
+/* ---- guardar / carregar / apagar ---- */
+function calcTemConteudo(){
+  return calcLinhas.some(function(l){ return (l.item||"").trim()!=="" || calcNum(l.qtd)>0 || calcNum(l.preco)>0; });
+}
+function calcGuardar(){
+  if(!calcTemConteudo()){ toast('Adicione pelo menos um item antes de guardar.'); return; }
+  var inp = document.getElementById('calc-guardar-nome');
+  if(inp) inp.value = calcCarregadoNome || "";
+  var aj = document.getElementById('calc-guardar-ajuda');
+  if(aj) aj.textContent = calcCarregadoNome
+    ? ('Pode manter o nome "'+calcCarregadoNome+'" para atualizar, ou escrever um novo nome.')
+    : 'Atribua um nome para arquivar este cálculo e consultá-lo depois.';
+  var ov = document.getElementById('calc-guardar-overlay');
+  if(ov) ov.classList.add('aberto');
+  setTimeout(function(){ if(inp){ inp.focus(); inp.select && inp.select(); } }, 40);
+}
+function fecharGuardarCalc(){
+  var ov = document.getElementById('calc-guardar-overlay');
+  if(ov) ov.classList.remove('aberto');
+}
+function confirmarGuardarCalc(){
+  var inp = document.getElementById('calc-guardar-nome');
+  var nome = inp ? inp.value.trim() : "";
+  if(!nome){ toast('Indique um nome para guardar.'); if(inp) inp.focus(); return; }
+
+  /* regista itens no catálogo para autocompletar futuro */
+  calcLinhas.forEach(function(l){ calcRegistarNoCatalogo(l.item, l.preco); });
+
+  var arr = calcLerGuardados();
+  var existente = arr.find(function(c){ return c.nome.toLowerCase()===nome.toLowerCase(); });
+  var payload = {
+    nome: nome,
+    linhas: calcLinhas.map(function(l){ return { item:l.item, qtd:l.qtd, preco:l.preco }; }),
+    total: calcTotalGeral(),
+    data: new Date().toISOString()
+  };
+  if(existente){ Object.assign(existente, payload); }
+  else { arr.unshift(payload); }
+  calcGuardarGuardados(arr);
+  calcCarregadoNome = nome;
+  fecharGuardarCalc();
+  calcRender();
+  toast('Cálculo "'+nome+'" guardado no arquivo.');
+}
+function abrirCalcGuardados(){
+  calcRenderGuardados();
+  var ov = document.getElementById('calc-guardados-overlay');
+  if(ov) ov.classList.add('aberto');
+}
+function fecharCalcGuardados(){
+  var ov = document.getElementById('calc-guardados-overlay');
+  if(ov) ov.classList.remove('aberto');
+}
+function calcRenderGuardados(){
+  var cont = document.getElementById('calc-guardados-lista');
+  if(!cont) return;
+  var arr = calcLerGuardados();
+  if(arr.length===0){
+    cont.innerHTML = '<div class="calc-guardados-vazio">Ainda não há cálculos guardados.<br>Crie uma lista e toque em Guardar.</div>';
+    return;
+  }
+  cont.innerHTML = arr.map(function(c, idx){
+    var nItens = (c.linhas||[]).length;
+    var d = c.data ? new Date(c.data) : null;
+    var dataTxt = d ? d.toLocaleDateString('pt-PT', {day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+    return ''
+      + '<div class="calc-guardado-row">'
+      +   '<div class="calc-guardado-info" onclick="calcCarregar('+idx+')">'
+      +     '<div class="calc-guardado-nome">'+calcEscapeAttr(c.nome)+'</div>'
+      +     '<div class="calc-guardado-meta">'+nItens+' '+(nItens===1?'item':'itens')+' &middot; '+formatarKz(c.total||0)+(dataTxt?(' &middot; '+dataTxt):'')+'</div>'
+      +   '</div>'
+      +   '<div class="calc-guardado-acoes">'
+      +     '<button class="abrir" title="Abrir" onclick="calcCarregar('+idx+')">&#128194;</button>'
+      +     '<button class="apagar" title="Apagar" onclick="calcApagarGuardado('+idx+')">&#128465;</button>'
+      +   '</div>'
+      + '</div>';
+  }).join('');
+}
+function calcCarregar(idx){
+  var arr = calcLerGuardados();
+  var c = arr[idx];
+  if(!c) return;
+  calcLinhas = (c.linhas||[]).map(function(l){ return { item:l.item||"", qtd:l.qtd||"", preco:l.preco||"" }; });
+  if(calcLinhas.length===0) calcLinhas.push({ item:"", qtd:"", preco:"" });
+  calcCarregadoNome = c.nome || "";
+  fecharCalcGuardados();
+  calcSetModo('folha');
+  calcRender();
+  var ov = document.getElementById('calc-doc-overlay');
+  if(ov && !ov.classList.contains('aberto')) ov.classList.add('aberto');
+  toast('Cálculo "'+(c.nome||'')+'" carregado.');
+}
+var calcApagarIdx = null;
+function calcApagarGuardado(idx){
+  var arr = calcLerGuardados();
+  var c = arr[idx];
+  if(!c) return;
+  arr.splice(idx,1);
+  calcGuardarGuardados(arr);
+  if(calcCarregadoNome && c.nome && calcCarregadoNome.toLowerCase()===c.nome.toLowerCase()) calcCarregadoNome = "";
+  calcRenderGuardados();
+  calcRender();
+  toast('Cálculo "'+(c.nome||'')+'" apagado.');
+}
+function calcLimpar(){
+  calcLinhas = [ {item:"",qtd:"",preco:""} ];
+  calcCarregadoNome = "";
+  calcRender();
+  toast('Folha limpa.');
+}
+
+/* ---- alternar modo: folha de cálculo / calculadora simples ---- */
+var calcModo = 'folha';
+function calcSetModo(modo){
+  calcModo = modo;
+  var folha = document.getElementById('calc-folha');
+  var simples = document.getElementById('calc-simples');
+  var bF = document.getElementById('calc-modo-folha');
+  var bS = document.getElementById('calc-modo-simples');
+  if(folha) folha.classList.toggle('oculto', modo!=='folha');
+  if(simples) simples.classList.toggle('on', modo==='simples');
+  if(bF) bF.classList.toggle('on', modo==='folha');
+  if(bS) bS.classList.toggle('on', modo==='simples');
+}
+
+/* ---- calculadora simples (teclado) ---- */
+var csExpr = "";
+function csrender(){
+  var el = document.getElementById('calc-simples-display');
   if(!el) return;
-  var show = calcDocExpr.replace(/\*/g,'\u00d7').replace(/\//g,'\u00f7').replace(/-/g,'\u2212');
+  var show = csExpr.replace(/\*/g,'\u00d7').replace(/\//g,'\u00f7').replace(/-/g,'\u2212');
   el.textContent = show || "0";
 }
-function calcDocInput(val){ calcDocExpr += val; calcDocAtualizar(); }
-function calcDocClear(){ calcDocExpr = ""; calcDocAtualizar(); }
-function calcDocBackspace(){ calcDocExpr = calcDocExpr.slice(0,-1); calcDocAtualizar(); }
-function calcDocEquals(){
-  if(!calcDocExpr) return;
-  try{
-    var expr = calcDocExpr.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
-    var r = Function('"use strict";return (' + expr + ')')();
-    if(typeof r === 'number' && isFinite(r)){
-      calcDocExpr = String(Math.round(r * 100000) / 100000);
-    } else {
-      calcDocExpr = "Erro";
-    }
-  }catch(e){ calcDocExpr = "Erro"; }
-  calcDocAtualizar();
+function csInput(v){
+  if(v==='C'){ csExpr=""; csrender(); return; }
+  if(v==='back'){ csExpr = csExpr.slice(0,-1); csrender(); return; }
+  if(v==='='){
+    if(!csExpr){ return; }
+    try{
+      var expr = csExpr.replace(/,/g,'.').replace(/(\d+(\.\d+)?)%/g,'($1/100)');
+      var r = Function('"use strict";return ('+expr+')')();
+      csExpr = (typeof r==='number' && isFinite(r)) ? String(Math.round(r*100000)/100000) : "Erro";
+    }catch(e){ csExpr = "Erro"; }
+    csrender(); return;
+  }
+  if(csExpr==="Erro") csExpr="";
+  csExpr += v;
+  csrender();
 }
 
 /* atalho: tecla Esc volta ao painel (ou fecha a calculadora, se aberta) */
 document.addEventListener('keydown', function(e){
   if(e.key!=='Escape') return;
+  var ovS = document.getElementById('calc-guardar-overlay');
+  if(ovS && ovS.classList.contains('aberto')){ fecharGuardarCalc(); return; }
+  var ovG = document.getElementById('calc-guardados-overlay');
+  if(ovG && ovG.classList.contains('aberto')){ fecharCalcGuardados(); return; }
   var ov = document.getElementById('calc-doc-overlay');
   if(ov && ov.classList.contains('aberto')){ fecharCalcDoc(); return; }
   if(document.body.classList.contains('tem-vista')) voltarHome();
