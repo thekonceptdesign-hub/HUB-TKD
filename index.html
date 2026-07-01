@@ -324,6 +324,24 @@ body.tem-vista .top-controls{ opacity:0; pointer-events:none; transform:scale(0.
 .rl-gerar-btn:active{ transform:translateY(0); }
 .rl-gerar-btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
 .rl-gerar-btn svg{ width:18px; height:18px; }
+
+/* Reportagem fotográfica — upload */
+.rl-foto-add{ width:100%; padding:12px; border:1.5px dashed rgba(216,184,119,0.5); border-radius:11px; background:rgba(184,147,82,0.08); color:var(--tijolo,#9C5A2E); font-family:inherit; font-size:0.86rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:background 0.2s, border-color 0.2s; margin-bottom:8px; }
+.rl-foto-add:hover{ background:rgba(184,147,82,0.16); border-color:var(--tijolo,#9C5A2E); }
+.rl-foto-add:active{ transform:scale(0.98); }
+body.dark .rl-foto-add{ background:rgba(200,165,90,0.1); color:var(--dourado); border-color:rgba(200,165,90,0.4); }
+.rl-foto-dica{ font-size:0.72rem; color:var(--cinza,#897764); margin:0 0 12px; line-height:1.5; }
+.rl-foto-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px; margin-bottom:16px; }
+.rl-foto-grid:empty{ display:none; }
+.rl-foto-card{ position:relative; border:1px solid rgba(216,184,119,0.3); border-radius:10px; overflow:hidden; background:rgba(255,255,255,0.5); }
+body.dark .rl-foto-card{ background:rgba(255,255,255,0.05); border-color:rgba(200,165,90,0.2); }
+.rl-foto-thumb{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#e8dbc4; }
+.rl-foto-legenda{ width:100%; border:none; border-top:1px solid rgba(216,184,119,0.3); background:transparent; font-family:inherit; font-size:0.74rem; color:var(--preto,#26190F); padding:7px 9px; outline:none; box-sizing:border-box; }
+.rl-foto-legenda::placeholder{ color:var(--cinza-claro,#B6A78C); }
+.rl-foto-legenda:focus{ background:rgba(184,147,82,0.08); }
+.rl-foto-del{ position:absolute; top:5px; right:5px; width:26px; height:26px; border-radius:8px; border:none; background:rgba(28,18,8,0.72); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; line-height:1; transition:background 0.2s; }
+.rl-foto-del:hover{ background:var(--vermelho,#A0492F); }
+.rl-foto-num{ position:absolute; top:5px; left:5px; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:rgba(28,18,8,0.72); color:#fff; font-size:0.68rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
 .rl-spinner{ width:18px; height:18px; border:2px solid rgba(243,234,217,0.3); border-top-color:#F3EAD9; border-radius:50%; animation:rlSpin 0.7s linear infinite; flex-shrink:0; }
 @keyframes rlSpin{ to{ transform:rotate(360deg); } }
 .rl-preview{ background:var(--branco-vidro-forte); backdrop-filter:var(--blur-glass); -webkit-backdrop-filter:var(--blur-glass); border:1px solid rgba(216,184,119,0.22); border-radius:var(--radius-lg); box-shadow:var(--sombra-md); overflow:hidden; min-height:500px; display:flex; flex-direction:column; }
@@ -1177,6 +1195,19 @@ body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
 
         <label class="rl-label">Observações adicionais</label>
         <textarea class="rl-textarea" id="rl-obs" placeholder="Notas livres, problemas encontrados, decisões tomadas…" rows="3"></textarea>
+
+        <!-- Reportagem fotográfica -->
+        <label class="rl-label" style="display:flex;align-items:center;gap:7px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Reportagem fotográfica
+        </label>
+        <button type="button" class="rl-foto-add" id="rl-foto-add" onclick="document.getElementById('rl-foto-input').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Anexar fotos da obra
+        </button>
+        <input type="file" id="rl-foto-input" accept="image/*" multiple style="display:none" onchange="rlAdicionarFotos(this.files); this.value='';">
+        <p class="rl-foto-dica" id="rl-foto-dica">As fotos anexadas surgem numa secção "Reportagem Fotográfica" no fim do relatório.</p>
+        <div class="rl-foto-grid" id="rl-foto-grid"></div>
 
         <button class="rl-gerar-btn" id="rl-gerar-btn" onclick="rlGerar()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -2405,7 +2436,8 @@ var rl = {
   tipo: "progresso",
   gerado: null,   /* HTML do relatório gerado */
   rlIniciado: false,
-  obras: []       /* cache das obras carregadas do iframe */
+  obras: [],      /* cache das obras carregadas do iframe */
+  fotos: []       /* reportagem fotográfica: {id, dataUrl, legenda} */
 };
 
 function rlIniciar(){
@@ -2550,6 +2582,82 @@ function rlCamposExtra(){
   el.innerHTML = html;
 }
 
+/* ---- Reportagem fotográfica: anexar / gerir fotos ---- */
+function rlUid(){ return "f_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+/* redimensiona a imagem para largura máx. e devolve dataURL JPEG (mantém o relatório leve) */
+function rlRedimensionarImagem(file, maxLargura, qualidade){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var escala = Math.min(1, maxLargura / img.width);
+        var w = Math.round(img.width * escala);
+        var h = Math.round(img.height * escala);
+        var canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        try{ resolve(canvas.toDataURL("image/jpeg", qualidade)); }
+        catch(err){ resolve(e.target.result); }
+      };
+      img.onerror = function(){ resolve(e.target.result); };
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function rlAdicionarFotos(fileList){
+  if(!fileList || !fileList.length) return;
+  var arr = Array.prototype.slice.call(fileList).filter(function(f){ return f && f.type && f.type.indexOf("image/") === 0; });
+  if(!arr.length){ toast("Selecione ficheiros de imagem."); return; }
+  var MAX = 24;
+  var dica = document.getElementById("rl-foto-dica");
+  if(dica) dica.textContent = "A processar imagens…";
+  for(var i=0;i<arr.length;i++){
+    if(rl.fotos.length >= MAX){ toast("Máximo de "+MAX+" fotos por relatório."); break; }
+    try{
+      var dataUrl = await rlRedimensionarImagem(arr[i], 1400, 0.82);
+      rl.fotos.push({ id: rlUid(), dataUrl: dataUrl, legenda: "" });
+    }catch(e){ /* ignora ficheiro problemático */ }
+  }
+  rlRenderFotos();
+  toast(rl.fotos.length + (rl.fotos.length === 1 ? " foto anexada." : " fotos anexadas."));
+}
+
+function rlRemoverFoto(id){
+  rl.fotos = rl.fotos.filter(function(f){ return f.id !== id; });
+  rlRenderFotos();
+}
+
+function rlLegendaFoto(id, valor){
+  var f = rl.fotos.find(function(x){ return x.id === id; });
+  if(f) f.legenda = valor;
+}
+
+function rlRenderFotos(){
+  var grid = document.getElementById("rl-foto-grid");
+  if(!grid) return;
+  grid.innerHTML = rl.fotos.map(function(f, i){
+    return '<div class="rl-foto-card">'
+      + '<span class="rl-foto-num">'+(i+1)+'</span>'
+      + '<button type="button" class="rl-foto-del" title="Remover" onclick="rlRemoverFoto(\''+f.id+'\')">&#10005;</button>'
+      + '<img class="rl-foto-thumb" src="'+f.dataUrl+'" alt="Foto '+(i+1)+'">'
+      + '<input class="rl-foto-legenda" type="text" placeholder="Legenda (opcional)" value="'+esc(f.legenda)+'" '
+      +   'oninput="rlLegendaFoto(\''+f.id+'\', this.value)">'
+      + '</div>';
+  }).join("");
+  var dica = document.getElementById("rl-foto-dica");
+  if(dica){
+    dica.textContent = rl.fotos.length
+      ? (rl.fotos.length + (rl.fotos.length===1?" foto":" fotos") + " na reportagem fotográfica do relatório.")
+      : 'As fotos anexadas surgem numa secção "Reportagem Fotográfica" no fim do relatório.';
+  }
+}
+
 function rlRecolher(){
   function v(id){ var el=document.getElementById(id); return el ? el.value.trim() : ""; }
 
@@ -2650,7 +2758,7 @@ function rlPrompt(dados){
   return partes.filter(function(p){ return p !== null; }).join("\n");
 }
 
-function rlConstruirHtml(dados, resposta, logo){
+function rlConstruirHtml(dados, resposta, logo, fotos){
   var hoje = dados.data ? new Date(dados.data).toLocaleDateString("pt-PT",{day:"2-digit",month:"long",year:"numeric"}) : new Date().toLocaleDateString("pt-PT",{day:"2-digit",month:"long",year:"numeric"});
   var tipoLabel = {progresso:"Relatório de Progresso",visita:"Relatório de Visita",final:"Relatório Final"}[dados.tipo] || "Relatório";
   var corFaixa = {progresso:"#3C6E47",visita:"#3A5A8C",final:"#6B4C2A"}[dados.tipo] || "#3C2A1A";
@@ -2661,6 +2769,23 @@ function rlConstruirHtml(dados, resposta, logo){
       + '<p style="margin:0;font-size:0.92rem;color:#3a2e24;line-height:1.7;">' + esc(s.conteudo).replace(/\n/g,"<br>") + '</p>'
       + '</div>';
   }).join('<hr style="border:none;border-top:1px solid #e8dbc4;margin:20px 0;">');
+
+  /* Reportagem fotográfica */
+  var fotosHtml = "";
+  if(fotos && fotos.length){
+    var cards = fotos.map(function(f, i){
+      var legenda = f.legenda ? esc(f.legenda) : ("Figura " + (i+1));
+      return '<figure style="margin:0;break-inside:avoid;page-break-inside:avoid;border:1px solid #e8dbc4;border-radius:10px;overflow:hidden;background:#fff;">'
+        + '<img src="'+f.dataUrl+'" alt="'+esc(legenda)+'" style="width:100%;height:200px;object-fit:cover;display:block;background:#f0e8d8;">'
+        + '<figcaption style="padding:8px 11px;font-size:0.76rem;color:#6a5844;border-top:1px solid #e8dbc4;line-height:1.4;"><b style="color:'+corFaixa+';">'+(i+1)+'.</b> '+legenda+'</figcaption>'
+        + '</figure>';
+    }).join("");
+    fotosHtml = '<div class="foto-sec" style="margin-top:34px;padding-top:24px;border-top:2px solid '+corFaixa+';">'
+      + '<h2 style="font-size:0.8rem;letter-spacing:1.8px;text-transform:uppercase;color:'+corFaixa+';margin:0 0 4px;font-weight:800;">Reportagem Fotográfica</h2>'
+      + '<p style="margin:0 0 18px;font-size:0.76rem;color:#897764;">Registo visual do estado da obra à data do relatório.</p>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' + cards + '</div>'
+      + '</div>';
+  }
 
   var logoHtml = logo ? '<img src="'+logo+'" alt="TKD" style="height:48px;width:auto;border-radius:8px;">' : '<div style="font-size:1.1rem;font-weight:800;color:#26190F;">TKD</div>';
 
@@ -2686,7 +2811,7 @@ function rlConstruirHtml(dados, resposta, logo){
     + '.rod-assin .linha{width:160px;border-top:1px solid #c8b98a;margin:0 0 6px auto;}'
     + '.rod-assin .nome{font-size:0.78rem;color:#26190F;font-weight:600;}'
     + '.rod-assin .cargo{font-size:0.68rem;color:#897764;}'
-    + '@media print{html,body{background:#fff;}.folha{box-shadow:none;}}'
+    + '@media print{html,body{background:#fff;}.folha{box-shadow:none;}.foto-sec figure{break-inside:avoid;page-break-inside:avoid;}}'
     + '</style></head><body>'
     + '<div class="folha">'
     + '<div class="faixa"></div>'
@@ -2707,6 +2832,7 @@ function rlConstruirHtml(dados, resposta, logo){
     + '<div class="info-item"><div class="rot">Empresa</div><div class="val">The Koncept Design</div></div>'
     + '</div>'
     + '<div class="secoes">' + secsHtml + '</div>'
+    + fotosHtml
     + '<div class="rodape">'
     + '<div class="rod-nota">' + esc(resposta.rodape||"Documento gerado pelo TKD HUB.") + '</div>'
     + '<div class="rod-assin"><div class="linha"></div><div class="nome">' + esc(dados.responsavel||"Responsável") + '</div><div class="cargo">The Koncept Design</div></div>'
@@ -2749,7 +2875,7 @@ async function rlGerar(){
     texto = texto.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
     var resultado = JSON.parse(texto);
 
-    var htmlRelatorio = rlConstruirHtml(dados, resultado, typeof LOGO_FULL_DARK!=="undefined" ? LOGO_FULL_DARK : null);
+    var htmlRelatorio = rlConstruirHtml(dados, resultado, typeof LOGO_FULL_DARK!=="undefined" ? LOGO_FULL_DARK : null, rl.fotos);
     rl.gerado = htmlRelatorio;
     rl.dadosGerado = dados;
 
