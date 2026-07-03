@@ -342,6 +342,22 @@ body.dark .rl-foto-card{ background:rgba(255,255,255,0.05); border-color:rgba(20
 .rl-foto-del{ position:absolute; top:5px; right:5px; width:26px; height:26px; border-radius:8px; border:none; background:rgba(28,18,8,0.72); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; line-height:1; transition:background 0.2s; }
 .rl-foto-del:hover{ background:var(--vermelho,#A0492F); }
 .rl-foto-num{ position:absolute; top:5px; left:5px; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:rgba(28,18,8,0.72); color:#fff; font-size:0.68rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+/* selector de colunas */
+.rl-foto-cols{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 12px; }
+.rl-foto-cols-lbl{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--cinza,#897764); font-weight:700; }
+.rl-foto-cols-btns{ display:flex; gap:5px; background:rgba(0,0,0,0.05); border-radius:999px; padding:3px; }
+body.dark .rl-foto-cols-btns{ background:rgba(255,255,255,0.06); }
+.rl-foto-col-btn{ min-width:34px; border:none; background:transparent; border-radius:999px; padding:6px 10px; font-family:inherit; font-size:0.8rem; font-weight:700; color:var(--cinza,#897764); cursor:pointer; transition:background 0.2s, color 0.2s; }
+.rl-foto-col-btn.on{ background:var(--branco,#FFFCF5); color:var(--preto,#26190F); box-shadow:var(--sombra-sm,0 1px 2px rgba(48,33,16,0.09)); }
+body.dark .rl-foto-col-btn.on{ background:rgba(200,165,90,0.22); color:var(--preto); }
+/* arrastar para reordenar */
+.rl-foto-card{ cursor:grab; }
+.rl-foto-card:active{ cursor:grabbing; }
+.rl-foto-card.rl-dragging{ opacity:0.45; }
+.rl-foto-card.rl-drop-antes{ box-shadow:-3px 0 0 0 var(--dourado,#B89352); }
+.rl-foto-card.rl-drop-depois{ box-shadow:3px 0 0 0 var(--dourado,#B89352); }
+.rl-foto-legenda{ cursor:text; }
+.rl-foto-handle{ position:absolute; bottom:34px; right:5px; width:26px; height:22px; border-radius:6px; background:rgba(28,18,8,0.55); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.85rem; pointer-events:none; }
 .rl-spinner{ width:18px; height:18px; border:2px solid rgba(243,234,217,0.3); border-top-color:#F3EAD9; border-radius:50%; animation:rlSpin 0.7s linear infinite; flex-shrink:0; }
 @keyframes rlSpin{ to{ transform:rotate(360deg); } }
 .rl-preview{ background:var(--branco-vidro-forte); backdrop-filter:var(--blur-glass); -webkit-backdrop-filter:var(--blur-glass); border:1px solid rgba(216,184,119,0.22); border-radius:var(--radius-lg); box-shadow:var(--sombra-md); overflow:hidden; min-height:500px; display:flex; flex-direction:column; }
@@ -1016,6 +1032,7 @@ body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
         <button class="backup-btn" onclick="exportarDados()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg> Exportar cópia</button>
         <button class="backup-btn" onclick="document.getElementById('import-file').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg> Importar cópia</button>
         <input type="file" id="import-file" accept="application/json,.json" hidden onchange="importarFicheiro(this.files&&this.files[0])">
+        <button class="backup-btn" id="btn-procurar-update" onclick="procurarAtualizacoes()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> <span id="procurar-update-label">Procurar atualizações</span></button>
       </div>
     </div>
   </section>
@@ -1207,6 +1224,14 @@ body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
         </button>
         <input type="file" id="rl-foto-input" accept="image/*" multiple style="display:none" onchange="rlAdicionarFotos(this.files); this.value='';">
         <p class="rl-foto-dica" id="rl-foto-dica">As fotos anexadas surgem numa secção "Reportagem Fotográfica" no fim do relatório.</p>
+        <div class="rl-foto-cols" id="rl-foto-cols" style="display:none;">
+          <span class="rl-foto-cols-lbl">Colunas no relatório</span>
+          <div class="rl-foto-cols-btns">
+            <button type="button" class="rl-foto-col-btn" data-col="1" onclick="rlSetColunas(1)">1</button>
+            <button type="button" class="rl-foto-col-btn on" data-col="2" onclick="rlSetColunas(2)">2</button>
+            <button type="button" class="rl-foto-col-btn" data-col="3" onclick="rlSetColunas(3)">3</button>
+          </div>
+        </div>
         <div class="rl-foto-grid" id="rl-foto-grid"></div>
 
         <button class="rl-gerar-btn" id="rl-gerar-btn" onclick="rlGerar()">
@@ -2438,6 +2463,7 @@ var rl = {
   rlIniciado: false,
   obras: [],      /* cache das obras carregadas do iframe */
   fotos: []       /* reportagem fotográfica: {id, dataUrl, legenda} */
+  , fotosColunas: 2   /* colunas da galeria no relatório (1, 2 ou 3) */
 };
 
 function rlIniciar(){
@@ -2642,20 +2668,96 @@ function rlRenderFotos(){
   var grid = document.getElementById("rl-foto-grid");
   if(!grid) return;
   grid.innerHTML = rl.fotos.map(function(f, i){
-    return '<div class="rl-foto-card">'
+    return '<div class="rl-foto-card" draggable="true" data-id="'+f.id+'" data-idx="'+i+'"'
+      +   ' ondragstart="rlDragStart(event,\''+f.id+'\')"'
+      +   ' ondragover="rlDragOver(event,\''+f.id+'\')"'
+      +   ' ondragleave="rlDragLeave(event)"'
+      +   ' ondrop="rlDrop(event,\''+f.id+'\')"'
+      +   ' ondragend="rlDragEnd(event)">'
       + '<span class="rl-foto-num">'+(i+1)+'</span>'
       + '<button type="button" class="rl-foto-del" title="Remover" onclick="rlRemoverFoto(\''+f.id+'\')">&#10005;</button>'
-      + '<img class="rl-foto-thumb" src="'+f.dataUrl+'" alt="Foto '+(i+1)+'">'
+      + '<span class="rl-foto-handle" title="Arraste para reordenar">&#9776;</span>'
+      + '<img class="rl-foto-thumb" src="'+f.dataUrl+'" alt="Foto '+(i+1)+'" draggable="false">'
       + '<input class="rl-foto-legenda" type="text" placeholder="Legenda (opcional)" value="'+esc(f.legenda)+'" '
+      +   'draggable="false" onmousedown="event.stopPropagation();" onpointerdown="event.stopPropagation();" '
       +   'oninput="rlLegendaFoto(\''+f.id+'\', this.value)">'
       + '</div>';
   }).join("");
   var dica = document.getElementById("rl-foto-dica");
   if(dica){
     dica.textContent = rl.fotos.length
-      ? (rl.fotos.length + (rl.fotos.length===1?" foto":" fotos") + " na reportagem fotográfica do relatório.")
+      ? (rl.fotos.length + (rl.fotos.length===1?" foto":" fotos") + " na reportagem fotográfica — arraste para reordenar.")
       : 'As fotos anexadas surgem numa secção "Reportagem Fotográfica" no fim do relatório.';
   }
+  var cols = document.getElementById("rl-foto-cols");
+  if(cols) cols.style.display = rl.fotos.length ? "flex" : "none";
+  rlSyncColunasBtns();
+}
+
+/* colunas da galeria no relatório */
+function rlSetColunas(n){
+  rl.fotosColunas = n;
+  rlSyncColunasBtns();
+}
+function rlSyncColunasBtns(){
+  var btns = document.querySelectorAll("#rl-foto-cols .rl-foto-col-btn");
+  btns.forEach(function(b){
+    b.classList.toggle("on", parseInt(b.getAttribute("data-col"),10) === (rl.fotosColunas||2));
+  });
+}
+
+/* ---- reordenar por arrastar ---- */
+var rlDragId = null;
+function rlIndexDe(id){ for(var i=0;i<rl.fotos.length;i++){ if(rl.fotos[i].id===id) return i; } return -1; }
+function rlDragStart(ev, id){
+  rlDragId = id;
+  try{ ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", id); }catch(e){}
+  var card = ev.currentTarget;
+  if(card) card.classList.add("rl-dragging");
+}
+function rlLimparMarcas(){
+  document.querySelectorAll("#rl-foto-grid .rl-foto-card").forEach(function(c){
+    c.classList.remove("rl-drop-antes","rl-drop-depois");
+  });
+}
+function rlDragOver(ev, id){
+  if(rlDragId === null || id === rlDragId) return;
+  ev.preventDefault();
+  try{ ev.dataTransfer.dropEffect = "move"; }catch(e){}
+  var card = ev.currentTarget;
+  if(!card) return;
+  var r = card.getBoundingClientRect();
+  var depois = (ev.clientX - r.left) > r.width/2;
+  card.classList.toggle("rl-drop-depois", depois);
+  card.classList.toggle("rl-drop-antes", !depois);
+}
+function rlDragLeave(ev){
+  var card = ev.currentTarget;
+  if(card) card.classList.remove("rl-drop-antes","rl-drop-depois");
+}
+function rlDrop(ev, id){
+  ev.preventDefault();
+  if(rlDragId === null || id === rlDragId){ rlLimparMarcas(); return; }
+  var from = rlIndexDe(rlDragId);
+  var to = rlIndexDe(id);
+  if(from === -1 || to === -1){ rlLimparMarcas(); return; }
+  var card = ev.currentTarget;
+  var r = card.getBoundingClientRect();
+  var depois = (ev.clientX - r.left) > r.width/2;
+  var item = rl.fotos.splice(from, 1)[0];
+  var destino = rlIndexDe(id); /* recalcula após remoção */
+  if(destino === -1) destino = to;
+  if(depois) destino += 1;
+  rl.fotos.splice(destino, 0, item);
+  rlDragId = null;
+  rlLimparMarcas();
+  rlRenderFotos();
+}
+function rlDragEnd(ev){
+  rlDragId = null;
+  var card = ev.currentTarget;
+  if(card) card.classList.remove("rl-dragging");
+  rlLimparMarcas();
 }
 
 function rlRecolher(){
@@ -2682,7 +2784,8 @@ function rlRecolher(){
     /* dados extra da obra para contexto da IA */
     obraEndereco: rl.obraActual ? (rl.obraActual.endereco||"") : "",
     obraStatus: rl.obraActual ? (rl.obraActual.status||"") : "",
-    obraValor: rl.obraActual ? (rl.obraActual.valorGlobal||"") : ""
+    obraValor: rl.obraActual ? (rl.obraActual.valorGlobal||"") : "",
+    fotosColunas: rl.fotosColunas || 2
   };
   if(rl.tipo==="progresso"){
     base.fase = v("rl-fase");
@@ -2773,17 +2876,19 @@ function rlConstruirHtml(dados, resposta, logo, fotos){
   /* Reportagem fotográfica */
   var fotosHtml = "";
   if(fotos && fotos.length){
+    var nCols = (dados.fotosColunas === 1 || dados.fotosColunas === 3) ? dados.fotosColunas : 2;
+    var alturaFig = nCols === 1 ? 320 : (nCols === 3 ? 150 : 200);
     var cards = fotos.map(function(f, i){
       var legenda = f.legenda ? esc(f.legenda) : ("Figura " + (i+1));
       return '<figure style="margin:0;break-inside:avoid;page-break-inside:avoid;border:1px solid #e8dbc4;border-radius:10px;overflow:hidden;background:#fff;">'
-        + '<img src="'+f.dataUrl+'" alt="'+esc(legenda)+'" style="width:100%;height:200px;object-fit:cover;display:block;background:#f0e8d8;">'
+        + '<img src="'+f.dataUrl+'" alt="'+esc(legenda)+'" style="width:100%;height:'+alturaFig+'px;object-fit:cover;display:block;background:#f0e8d8;">'
         + '<figcaption style="padding:8px 11px;font-size:0.76rem;color:#6a5844;border-top:1px solid #e8dbc4;line-height:1.4;"><b style="color:'+corFaixa+';">'+(i+1)+'.</b> '+legenda+'</figcaption>'
         + '</figure>';
     }).join("");
     fotosHtml = '<div class="foto-sec" style="margin-top:34px;padding-top:24px;border-top:2px solid '+corFaixa+';">'
       + '<h2 style="font-size:0.8rem;letter-spacing:1.8px;text-transform:uppercase;color:'+corFaixa+';margin:0 0 4px;font-weight:800;">Reportagem Fotográfica</h2>'
       + '<p style="margin:0 0 18px;font-size:0.76rem;color:#897764;">Registo visual do estado da obra à data do relatório.</p>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' + cards + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:16px;">' + cards + '</div>'
       + '</div>';
   }
 
@@ -4086,6 +4191,73 @@ document.addEventListener("keydown", function(e){
     });
   }catch(e){}
 })();
+
+/* ============================================================
+   Procurar atualizações manualmente (botão nas definições)
+   ============================================================ */
+function procurarAtualizacoes(){
+  var btn = document.getElementById("btn-procurar-update");
+  var lbl = document.getElementById("procurar-update-label");
+  function repor(txt){
+    if(lbl) lbl.textContent = txt || "Procurar atualizações";
+    if(btn) btn.disabled = false;
+  }
+  if(!("serviceWorker" in navigator)){
+    toast("Atualizações automáticas não estão disponíveis neste navegador.");
+    return;
+  }
+  if(btn) btn.disabled = true;
+  if(lbl) lbl.textContent = "A procurar…";
+
+  var respondeu = false;
+  /* se surgir uma nova versão, o controllerchange trata do reload */
+  navigator.serviceWorker.getRegistration().then(function(reg){
+    if(!reg){
+      /* ainda não registado (ex.: primeira visita ou aberto via file://) */
+      toast("Ligue-se à Internet e reabra a app para instalar as atualizações.");
+      repor();
+      return;
+    }
+    /* deteta nova versão a instalar */
+    reg.addEventListener("updatefound", function(){
+      respondeu = true;
+      var novo = reg.installing;
+      if(lbl) lbl.textContent = "A instalar nova versão…";
+      if(novo){
+        novo.addEventListener("statechange", function(){
+          if(novo.state === "installed" && navigator.serviceWorker.controller){
+            try{ sessionStorage.setItem("tkd_atualizado", "1"); }catch(e){}
+            try{ novo.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+            try{ if(reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+          }
+        });
+      }
+    });
+
+    reg.update().then(function(){
+      /* dá um instante para o updatefound disparar */
+      setTimeout(function(){
+        if(reg.waiting){
+          respondeu = true;
+          if(lbl) lbl.textContent = "A aplicar atualização…";
+          try{ sessionStorage.setItem("tkd_atualizado", "1"); }catch(e){}
+          try{ reg.waiting.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+          return;
+        }
+        if(!respondeu){
+          toast("Já está na versão mais recente.");
+          repor();
+        }
+      }, 1500);
+    }).catch(function(){
+      toast("Não foi possível verificar agora. Tente com ligação à Internet.");
+      repor();
+    });
+  }).catch(function(){
+    toast("Não foi possível verificar atualizações.");
+    repor();
+  });
+}
 
 /* ============================================================
    ARRANQUE: bloqueio + dashboard
