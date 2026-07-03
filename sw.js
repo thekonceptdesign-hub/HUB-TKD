@@ -13,7 +13,7 @@
    cache antiga é apagada e os dispositivos atualizam.
    ============================================================ */
 
-const CACHE_VERSION = "tkd-hub-v1";
+const CACHE_VERSION = "tkd-hub-v1";  /* ↔ APP_VERSION "1.0.0" no index.html */
 const CACHE_NAME = CACHE_VERSION;
 
 /* Recursos que vale a pena pré-guardar para arranque offline. */
