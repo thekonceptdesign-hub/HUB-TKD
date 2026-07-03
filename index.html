@@ -4015,15 +4015,75 @@ document.addEventListener("keydown", function(e){
 });
 
 /* ============================================================
-   PWA — registar service worker (offline), se disponível
+   PWA — registar service worker (offline) + ATUALIZAÇÃO AUTOMÁTICA
+   Resolve o problema de updates que demoram a chegar aos dispositivos:
+   verifica nova versão ao abrir, ao voltar ao separador, e
+   periodicamente; quando o novo service worker fica pronto, ativa-o
+   imediatamente e recarrega a página uma única vez.
    ============================================================ */
 (function registarSW(){
   try{
-    if("serviceWorker" in navigator && (location.protocol === "https:" || location.protocol === "http:")){
-      window.addEventListener("load", function(){
-        navigator.serviceWorker.register("sw.js").catch(function(){ /* sem rede / ficheiro ausente: ignorar */ });
-      });
+    if(!("serviceWorker" in navigator)) return;
+    if(!(location.protocol === "https:" || location.protocol === "http:")) return;
+
+    var recarregou = false;
+    /* Quando o novo SW assume o controlo, recarrega a página uma vez */
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if(recarregou) return;
+      recarregou = true;
+      try{ sessionStorage.setItem("tkd_atualizado", "1"); }catch(e){}
+      window.location.reload();
+    });
+
+    function vigiarAtualizacao(reg){
+      if(!reg) return;
+      /* pede verificação imediata de nova versão */
+      try{ reg.update(); }catch(e){}
+
+      function tratarNovo(worker){
+        if(!worker) return;
+        worker.addEventListener("statechange", function(){
+          /* já há um controlador (versão antiga) e o novo está pronto */
+          if(worker.state === "installed" && navigator.serviceWorker.controller){
+            /* pede ao novo SW para assumir já (precisa de skipWaiting no sw.js) */
+            try{ worker.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+            try{ if(reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+          }
+        });
+      }
+
+      if(reg.waiting && navigator.serviceWorker.controller){
+        try{ reg.waiting.postMessage({ type: "SKIP_WAITING" }); }catch(e){}
+      }
+      if(reg.installing) tratarNovo(reg.installing);
+      reg.addEventListener("updatefound", function(){ tratarNovo(reg.installing); });
     }
+
+    window.addEventListener("load", function(){
+      /* confirma ao utilizador que a app foi atualizada */
+      try{
+        if(sessionStorage.getItem("tkd_atualizado") === "1"){
+          sessionStorage.removeItem("tkd_atualizado");
+          setTimeout(function(){ try{ toast("App atualizada para a versão mais recente."); }catch(e){} }, 800);
+        }
+      }catch(e){}
+
+      navigator.serviceWorker.register("sw.js").then(function(reg){
+        vigiarAtualizacao(reg);
+
+        /* verifica nova versão sempre que o utilizador volta à app */
+        document.addEventListener("visibilitychange", function(){
+          if(document.visibilityState === "visible"){
+            try{ reg.update(); }catch(e){}
+          }
+        });
+        window.addEventListener("focus", function(){ try{ reg.update(); }catch(e){} });
+        window.addEventListener("online", function(){ try{ reg.update(); }catch(e){} });
+
+        /* verificação periódica (a cada 30 min com a app aberta) */
+        setInterval(function(){ try{ reg.update(); }catch(e){} }, 30 * 60 * 1000);
+      }).catch(function(){ /* sem rede / ficheiro ausente: ignorar */ });
+    });
   }catch(e){}
 })();
 

@@ -1,30 +1,114 @@
-/* TKD HUB — Service Worker v2 */
-const CACHE = 'tkd-hub-v2';
-const ASSETS = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
+/* ============================================================
+   TKD HUB — Service Worker
+   Estratégia:
+   - "network-first" para o index.html (a app) → quando há Internet,
+     o utilizador recebe SEMPRE a versão mais recente; sem Internet,
+     usa a última guardada (funciona offline).
+   - "stale-while-revalidate" para ícones/recursos estáticos.
+   - Ativação imediata da nova versão (skipWaiting + clients.claim),
+     coordenada com o index.html para recarregar uma única vez.
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+   IMPORTANTE: sempre que publicares uma nova versão da app, muda o
+   número em CACHE_VERSION abaixo (ex.: v1 → v2). Isso garante que a
+   cache antiga é apagada e os dispositivos atualizam.
+   ============================================================ */
+
+const CACHE_VERSION = "tkd-hub-v1";
+const CACHE_NAME = CACHE_VERSION;
+
+/* Recursos que vale a pena pré-guardar para arranque offline. */
+const PRECACHE_URLS = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png"
+];
+
+/* ---- Instalação: pré-carrega o essencial e assume já ---- */
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      /* addAll falha se algum ficheiro faltar; usamos add individual tolerante */
+      Promise.all(
+        PRECACHE_URLS.map((url) =>
+          cache.add(new Request(url, { cache: "reload" })).catch(() => null)
+        )
+      )
+    )
+  );
 });
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ).then(() => self.clients.claim()));
+
+/* ---- Ativação: apaga caches antigas e assume o controlo ---- */
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((chaves) =>
+      Promise.all(
+        chaves.filter((c) => c !== CACHE_NAME).map((c) => caches.delete(c))
+      )
+    ).then(() => self.clients.claim())
+  );
 });
-self.addEventListener('fetch', e => {
-  if(e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
-  const allowed = url.origin === location.origin
-    || url.href.startsWith('https://fonts.googleapis.com')
-    || url.href.startsWith('https://fonts.gstatic.com');
-  if(!allowed) return;
-  e.respondWith(caches.match(e.request).then(cached => {
-    const network = fetch(e.request).then(res => {
-      if(res && res.status === 200 && res.type !== 'opaque'){
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-      }
-      return res;
-    }).catch(() => null);
-    return cached || network;
-  }));
+
+/* ---- Mensagem do index.html para ativar já a nova versão ---- */
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
+/* Identifica pedidos de navegação (o próprio index.html / a app) */
+function ehPedidoDeNavegacao(request) {
+  return (
+    request.mode === "navigate" ||
+    (request.method === "GET" &&
+      request.headers.get("accept") &&
+      request.headers.get("accept").includes("text/html"))
+  );
+}
+
+/* ---- Fetch ---- */
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+
+  /* só tratamos GET */
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+
+  /* ignora outros domínios (ex.: Google Fonts, Firebase) — deixa passar */
+  if (url.origin !== self.location.origin) return;
+
+  /* App / navegação → NETWORK-FIRST (sempre a versão mais recente online) */
+  if (ehPedidoDeNavegacao(request) || url.pathname.endsWith("index.html")) {
+    event.respondWith(
+      fetch(request, { cache: "no-store" })
+        .then((resposta) => {
+          const copia = resposta.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", copia));
+          return resposta;
+        })
+        .catch(() =>
+          caches.match("./index.html").then((r) => r || caches.match("./"))
+        )
+    );
+    return;
+  }
+
+  /* Restantes recursos → STALE-WHILE-REVALIDATE */
+  event.respondWith(
+    caches.match(request).then((cacheado) => {
+      const rede = fetch(request)
+        .then((resposta) => {
+          if (resposta && resposta.status === 200) {
+            const copia = resposta.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copia));
+          }
+          return resposta;
+        })
+        .catch(() => cacheado);
+      return cacheado || rede;
+    })
+  );
 });
