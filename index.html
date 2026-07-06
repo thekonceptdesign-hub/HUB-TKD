@@ -3699,15 +3699,18 @@ function recolherLocalParaNuvem(){
     if(!ts){ ts = Date.now(); guardarLocalTS(ts); }
     var obrasStore = obras.store || null;
 
-    /* REMOVIDA a "guarda de segurança" que usava fb.obrasCache como fallback.
-       Esse fallback era a causa principal da ressurreição de obras apagadas:
-       quando o iframe não estava carregado, o pedirObras() devolvia null,
-       e o fallback injectava o obrasCache desactualizado — incluindo obras
-       já eliminadas noutros dispositivos — na nuvem.
+    /* Se o iframe não respondeu a tempo (store nulo), usamos a última cópia
+       boa conhecida (fb.obrasCache) em vez de null. Enviar null aqui faria o
+       set()/update() APAGAR as obras na nuvem; enviar dados do iframe quando
+       ele está desactualizado sobrescrevia alterações recém-chegadas de outro
+       dispositivo (era a causa de "telemóvel→PC não persistir").
 
-       Agora: se o iframe não respondeu (store nulo), simplesmente não enviamos
-       as obras neste ciclo — enviamos apenas docs, clientes e itens.
-       O estado de obras na nuvem não é perturbado. */
+       Este fallback é agora seguro porque aplicarRemoto() aplica SEMPRE as
+       obras recebidas ao iframe e mantém fb.obrasCache sincronizado com os
+       apagamentos reais — logo já não ressuscita obras eliminadas. */
+    if(obrasStore === null && fb.obrasCache != null){
+      obrasStore = fb.obrasCache;
+    }
 
     return {
       docs: lerDocs(),
@@ -3725,7 +3728,17 @@ function recolherLocalParaNuvem(){
 function empurrar(){
   if(!fb.ligado || !fb.ref) return;
   clearTimeout(fb.empurrarTimer);
-  fb.empurrarTimer = setTimeout(function(){ recolherLocalParaNuvem().then(function(dados){ try{ fb.ref.set(dados); }catch(e){} }); }, 700);
+  fb.empurrarTimer = setTimeout(function(){ recolherLocalParaNuvem().then(function(dados){ try{
+    if(dados.obras == null){
+      /* Sem obras fiáveis para enviar: não tocar nas obras já existentes na
+         nuvem. update() escreve apenas as chaves fornecidas e preserva as
+         omitidas — set() apagaria as obras. */
+      delete dados.obras; delete dados.obrasSeq;
+      fb.ref.update(dados);
+    } else {
+      fb.ref.set(dados);
+    }
+  }catch(e){} }); }, 700);
 }
 function sincronizarAgora(){ guardarLocalTS(Date.now()); if(fb.ligado) empurrar(); }
 
@@ -3765,14 +3778,18 @@ function aplicarRemoto(val){
 
   if(novoStore !== fb.obrasCache){
     fb.obrasCache = novoStore;
-    if(vistaAtual === "view-obras"){
-      enviarObras({store: novoStore, seq: val.obrasSeq||null});
-      toast("Obras actualizadas.");
-    } else if(obrasCarregado){
-      enviarObras({store: novoStore, seq: val.obrasSeq||null});
-    } else {
-      fb.pendenteObras = {store: novoStore, seq: val.obrasSeq||null};
-    }
+    /* Aplica SEMPRE ao iframe — mesmo fora da vista de obras e mesmo que o
+       iframe ainda não esteja carregado (enviarObras() carrega-o via
+       garantirObras). Assim o iframe é a ÚNICA fonte de verdade e o próximo
+       empurrar()/recolherLocalParaNuvem() lê sempre dados actualizados, em
+       vez de reenviar obras antigas por cima da alteração do outro
+       dispositivo. Era exactamente isto que impedia telemóvel→PC: as obras
+       recebidas ficavam só em fb.pendenteObras (não aplicadas ao iframe), e
+       qualquer envio subsequente do PC lia o iframe desactualizado e
+       sobrescrevia a nuvem com dados velhos. */
+    enviarObras({store: novoStore, seq: val.obrasSeq||null});
+    fb.pendenteObras = null;
+    if(vistaAtual === "view-obras") toast("Obras actualizadas.");
     marcarNovidades(false);
   }
 
