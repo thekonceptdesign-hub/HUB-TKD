@@ -4149,10 +4149,12 @@ document.addEventListener("keydown", function(e){
    ============================================================ */
 /* ============================================================
    VERSÃO DA APP
-   Mude este número a cada publicação e mantenha igual ao
-   CACHE_VERSION em sw.js (ex.: app "1.0.0" ↔ sw "tkd-hub-v1").
+   Suba este número a cada publicação, em sequência (1.0.0 → 1.0.1 → …),
+   e mantenha o CACHE_VERSION em sw.js igual (ex.: app "1.0.1" ↔ sw
+   "tkd-hub-v1.0.1"). Assim, ao refrescar o link do hub, o número de
+   versão mostrado confirma se a nova versão já foi aplicada.
    ============================================================ */
-var APP_VERSION = "1.0.0";
+var APP_VERSION = "1.0.1";
 
 (function registarSW(){
   try{

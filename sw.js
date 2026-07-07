@@ -9,11 +9,12 @@
      coordenada com o index.html para recarregar uma única vez.
 
    IMPORTANTE: sempre que publicares uma nova versão da app, muda o
-   número em CACHE_VERSION abaixo (ex.: v1 → v2). Isso garante que a
+   número em CACHE_VERSION abaixo, em sequência, igual ao APP_VERSION do
+   index.html (ex.: v1.0.0 → v1.0.1). Isso garante que a
    cache antiga é apagada e os dispositivos atualizam.
    ============================================================ */
 
-const CACHE_VERSION = "tkd-hub-v1";  /* ↔ APP_VERSION "1.0.0" no index.html */
+const CACHE_VERSION = "tkd-hub-v1.0.1";  /* ↔ APP_VERSION "1.0.1" no index.html */
 const CACHE_NAME = CACHE_VERSION;
 
 /* Recursos que vale a pena pré-guardar para arranque offline. */
