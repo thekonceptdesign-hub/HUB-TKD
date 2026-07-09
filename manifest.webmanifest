@@ -1,33 +1,46 @@
 {
   "name": "TKD HUB — The Koncept Design",
   "short_name": "TKD HUB",
-  "description": "Centro de gestão da The Koncept Design: obras, orçamentos, cronograma e relatórios.",
-  "lang": "pt-PT",
-  "dir": "ltr",
-  "start_url": "./index.html",
+  "description": "Painel de gestão TKD: obras, facturas e orçamentos, relatórios e cronogramas.",
+  "lang": "pt",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#26190F",
   "theme_color": "#26190F",
   "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "name": "Facturas & Orçamentos",
+      "short_name": "Facturas",
+      "description": "Criar uma factura ou orçamento",
+      "url": "./?vista=facturas",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "name": "Acompanhamento de Obras",
+      "short_name": "Obras",
+      "description": "Abrir o diário de progresso das obras",
+      "url": "./?vista=obras",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "name": "Relatórios de Obra (IA)",
+      "short_name": "Relatórios",
+      "description": "Gerar um relatório de obra",
+      "url": "./?vista=relatorios",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Cronograma de Obra",
+      "short_name": "Cronograma",
+      "description": "Planear fases e prazos",
+      "url": "./?vista=cronograma",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
