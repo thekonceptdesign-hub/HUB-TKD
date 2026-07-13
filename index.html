@@ -4202,7 +4202,7 @@ document.addEventListener("keydown", function(e){
    "tkd-hub-v1.0.1"). Assim, ao refrescar o link do hub, o número de
    versão mostrado confirma se a nova versão já foi aplicada.
    ============================================================ */
-var APP_VERSION = "1.7.0";
+var APP_VERSION = "1.7.1";
 
 (function registarSW(){
   try{
@@ -5426,6 +5426,14 @@ document.addEventListener('keydown', function(e){
 
   /* botão "emitir recibo" nas facturas do arquivo */
   .converter.rc-de-fact{ color:var(--verde); }
+
+  /* ---------- correção iPhone (app instalada / standalone) ----------
+     A barra superior é fixa e cresce com a safe area do notch.
+     A vista de facturas não tinha compensação (ao contrário de
+     Relatórios e Cronograma), pelo que o selector Factura/Orçamento/
+     Recibo ficava por baixo da barra e sem reagir ao toque. */
+  .view-facturas{ padding-top:calc(58px + env(safe-area-inset-top,0px)); min-height:100vh; }
+  .fx-panel.sticky{ top:calc(74px + env(safe-area-inset-top,0px)); }
   </style>
 
   <script id="v17-js">
