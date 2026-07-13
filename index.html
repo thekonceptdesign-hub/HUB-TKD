@@ -1280,6 +1280,7 @@ body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
         <div class="fx-seg">
           <button id="seg-factura" class="on" onclick="setTipo('factura')">Factura</button>
           <button id="seg-orcamento" onclick="setTipo('orcamento')">Orçamento</button>
+          <button id="seg-recibo" onclick="setTipo('recibo')">Recibo</button>
         </div>
 
         <div class="fx-sec">
@@ -1317,6 +1318,45 @@ body.dark .csb.eq{ background:var(--dourado); color:#1E1A14; }
             <div class="field"><label>IVA (%)</label><input id="f-iva" class="num" type="number" min="0" step="1" value="0" oninput="atualizar()"></div>
           </div>
           <div class="field"><label>Nota / condições</label><textarea id="f-nota" placeholder="Condições de pagamento, prazo de entrega, etc." oninput="atualizar()"></textarea></div>
+        </div>
+
+        <!-- ===== Painel do recibo de pagamento (aba "Recibo") ===== -->
+        <div id="rc-panel">
+          <div class="fx-sec">
+            <p class="fx-sec-tit">Recibo</p>
+            <div class="field-row">
+              <div class="field"><label>Número</label><input id="rc-numero" oninput="rcNumeroEditado=true;rcAtualizar()"></div>
+              <div class="field"><label>Data do pagamento</label><input id="rc-data" type="date" oninput="rcAtualizar()"></div>
+            </div>
+          </div>
+          <div class="fx-sec">
+            <p class="fx-sec-tit">Recebido de</p>
+            <div class="field"><label>Nome</label><input id="rc-nome" list="dl-clientes" placeholder="Nome do cliente" oninput="rcAtualizar()" onchange="rcPreencherCliente(this.value)"></div>
+            <div class="field-row">
+              <div class="field"><label>NIF</label><input id="rc-nif" placeholder="NIF" oninput="rcAtualizar()"></div>
+              <div class="field"><label>Morada</label><input id="rc-end" placeholder="Morada / cidade" oninput="rcAtualizar()"></div>
+            </div>
+          </div>
+          <div class="fx-sec">
+            <p class="fx-sec-tit">Pagamento</p>
+            <div class="field-row">
+              <div class="field"><label>Valor recebido (Kz)</label><input id="rc-valor" class="num" type="number" min="0" step="0.01" placeholder="0,00" oninput="rcAtualizar()"></div>
+              <div class="field"><label>Método</label><select id="rc-metodo" onchange="rcAtualizar()">
+                <option>Transferência bancária</option>
+                <option>Numerário</option>
+                <option>Multicaixa / TPA</option>
+                <option>Multicaixa Express</option>
+                <option>Cheque</option>
+                <option>Outro</option>
+              </select></div>
+            </div>
+            <div class="field"><label>Referente a</label><input id="rc-ref" placeholder="Ex.: Factura FT 2026/012 — 1.ª prestação" oninput="rcAtualizar()"></div>
+            <div class="field"><label>Nota (opcional)</label><textarea id="rc-nota" placeholder="Observações a constar no recibo" oninput="rcAtualizar()"></textarea></div>
+          </div>
+          <div class="rc-acoes">
+            <button class="fx-guardar" onclick="guardarReciboFx()">&#129534; Emitir recibo</button>
+            <button class="rc-limpar" onclick="rcLimpar()">Limpar e novo recibo</button>
+          </div>
         </div>
 
         <div class="fx-auto" id="auto-ind"><span class="dot"></span>Guardado automaticamente</div>
@@ -2277,6 +2317,12 @@ function itemArquivoHtml(rec, ehRascunho){
     converterHtml = '<button class="converter" title="Converter em factura" onclick="converterParaFactura(\''+rec.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M20 8a8 8 0 0 0-14.9-2M4 16a8 8 0 0 0 14.9 2"/></svg></button>';
   }
 
+  /* emitir recibo a partir desta factura */
+  var reciboFactHtml = "";
+  if(!ehRascunho && d.tipo==="factura"){
+    reciboFactHtml = '<button class="converter rc-de-fact" title="Emitir recibo desta factura" onclick="reciboDaFactura(\''+rec.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z"/><path d="M8 8h8"/><path d="M8 12h5"/></svg></button>';
+  }
+
   return '<div class="arq-item">'
     + '<div class="info">'
       + '<div class="l1"><span class="tipo '+tipoCls+'">'+tipoTxt+'</span><span class="num">'+esc(d.numero||"(sem nº)")+'</span>'+estadoHtml+'</div>'
@@ -2285,6 +2331,7 @@ function itemArquivoHtml(rec, ehRascunho){
     + '<div class="total">'+esc(formatarKz(d.total))+'</div>'
     + '<div class="acts">'
       + converterHtml
+      + reciboFactHtml
       + '<button class="abrir" title="Abrir" onclick="'+fnAbrir+'(\''+rec.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'
       + '<button class="apagar" title="Apagar" onclick="'+fnApagar+'(\''+rec.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg></button>'
     + '</div>'
@@ -4155,7 +4202,7 @@ document.addEventListener("keydown", function(e){
    "tkd-hub-v1.0.1"). Assim, ao refrescar o link do hub, o número de
    versão mostrado confirma se a nova versão já foi aplicada.
    ============================================================ */
-var APP_VERSION = "1.6.1";
+var APP_VERSION = "1.7.0";
 
 (function registarSW(){
   try{
@@ -5340,6 +5387,311 @@ document.addEventListener('keydown', function(e){
       }, jaViuV15 ? 6200 : 11500);
     }
   }catch(e){}
+
+  })();
+  </script>
+
+
+  <!-- ============================================================
+       TKD HUB — Camada v1.7 "Recibos"
+       Aba própria de recibos de pagamento nas Facturas & Orçamentos
+       e emissão de recibo directamente a partir de facturas emitidas.
+       Bloco aditivo, como as camadas v1.5/v1.6.
+       ============================================================ -->
+  <style id="v17-css">
+  /* painel do recibo: escondido por defeito; em modo-recibo troca com o editor normal */
+  #rc-panel{ display:none; }
+  .view-facturas.modo-recibo .fx-panel > .fx-sec{ display:none; }
+  .view-facturas.modo-recibo .fx-acoes-doc,
+  .view-facturas.modo-recibo .fx-auto,
+  .view-facturas.modo-recibo .fx-novo{ display:none; }
+  .view-facturas.modo-recibo #rc-panel{ display:block; }
+
+  #rc-panel select{
+    width:100%; font:inherit; font-size:0.92rem; padding:11px 12px;
+    border:1px solid var(--linha-forte); border-radius:12px;
+    background:var(--branco); color:var(--preto); outline:none;
+    transition:border-color 0.2s;
+  }
+  #rc-panel select:focus{ border-color:var(--dourado); }
+  body.dark #rc-panel select{ background:rgba(255,255,255,0.06); border-color:rgba(200,165,90,0.25); color:var(--preto); }
+
+  .rc-acoes{ margin-top:20px; display:grid; gap:8px; }
+  .rc-acoes .fx-guardar{ width:100%; }
+  .rc-limpar{
+    border:none; background:transparent; color:var(--cinza);
+    font:inherit; font-size:0.8rem; cursor:pointer; padding:6px;
+  }
+  .rc-limpar:hover{ color:var(--preto); text-decoration:underline; }
+
+  /* botão "emitir recibo" nas facturas do arquivo */
+  .converter.rc-de-fact{ color:var(--verde); }
+  </style>
+
+  <script id="v17-js">
+  /* ============================================================
+     TKD HUB v1.7 — "Recibos"
+     ============================================================ */
+  (function(){
+  "use strict";
+
+  window.rcNumeroEditado = false;
+  var rcFacturaLigada = null;   /* id do doc no arquivo, quando o recibo nasce de uma factura */
+  var rcTimer = null;
+
+  function rcVal(id){ var e = document.getElementById(id); return e ? e.value : ""; }
+  function emModoRecibo(){
+    var vf = document.getElementById('view-facturas');
+    return !!(vf && vf.classList.contains('modo-recibo'));
+  }
+
+  function sugerirNumeroRecibo(){
+    var ano = new Date().getFullYear();
+    var n = lerSeq('recibo') + 1;
+    return 'RC ' + ano + '/' + String(n).padStart(3,'0');
+  }
+
+  /* ---------- alternar para o modo recibo (envolve o setTipo existente) ---------- */
+  var _setTipoFx = setTipo;
+  setTipo = function(t){
+    var vf = document.getElementById('view-facturas');
+    var segRc = document.getElementById('seg-recibo');
+    if(t === 'recibo'){
+      vf.classList.add('modo-recibo');
+      document.getElementById('seg-factura').classList.remove('on');
+      document.getElementById('seg-orcamento').classList.remove('on');
+      if(segRc) segRc.classList.add('on');
+      if(!rcNumeroEditado && !rcVal('rc-numero')) setVal('rc-numero', sugerirNumeroRecibo());
+      if(!rcVal('rc-data')) setVal('rc-data', new Date().toISOString().slice(0,10));
+      rcAtualizar();
+    } else {
+      vf.classList.remove('modo-recibo');
+      if(segRc) segRc.classList.remove('on');
+      rcFacturaLigada = null;
+      _setTipoFx(t);
+    }
+  };
+
+  /* em modo recibo, o atualizar() genérico passa a renderizar o recibo
+     (evita que sincronizações em fundo troquem a pré-visualização) */
+  var _atualizarFx = atualizar;
+  atualizar = function(){
+    if(emModoRecibo()){ rcAtualizar(); return; }
+    _atualizarFx();
+  };
+
+  /* imprimir / partilhar respeitam o modo recibo */
+  var _imprimirDocFx = imprimirDoc;
+  imprimirDoc = function(){
+    if(!emModoRecibo()){ _imprimirDocFx(); return; }
+    var ifr = document.getElementById('doc-iframe');
+    try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }
+    catch(e){ toast('A impressão não está disponível neste navegador.'); }
+  };
+  var _partilharDocFx = partilharDoc;
+  partilharDoc = async function(){
+    if(!emModoRecibo()){ return _partilharDocFx(); }
+    var r = rcDados();
+    var titulo = 'Recibo ' + r.numero;
+    var linhas = [
+      titulo + ' — The Koncept Design',
+      r.nome ? 'Recebido de: ' + r.nome : '',
+      'Valor: ' + formatarKz(r.valor),
+      r.metodo ? 'Método: ' + r.metodo : '',
+      r.ref ? 'Referente a: ' + r.ref : '',
+      r.data ? 'Data: ' + fmtDataLonga(r.data) : ''
+    ].filter(Boolean);
+    var texto = linhas.join('\n');
+    if(navigator.share){ try{ await navigator.share({title:titulo, text:texto}); }catch(e){} return; }
+    try{ await navigator.clipboard.writeText(texto); toast('Resumo do recibo copiado. Para o documento completo, use "Guardar PDF".'); }
+    catch(e){ toast('Use "Guardar PDF" para criar o ficheiro a enviar.'); }
+  };
+
+  /* ---------- dados e pré-visualização ---------- */
+  function rcDados(){
+    return {
+      numero: rcVal('rc-numero').trim() || sugerirNumeroRecibo(),
+      data: rcVal('rc-data'),
+      nome: rcVal('rc-nome').trim(),
+      nif: rcVal('rc-nif').trim(),
+      end: rcVal('rc-end').trim(),
+      valor: parseFloat(rcVal('rc-valor')) || 0,
+      metodo: rcVal('rc-metodo'),
+      ref: rcVal('rc-ref').trim(),
+      nota: rcVal('rc-nota').trim()
+    };
+  }
+  window.rcAtualizar = function(){
+    if(!emModoRecibo()) return;
+    var r = rcDados();
+    var pt = document.getElementById('prev-tit');
+    if(pt) pt.textContent = 'Recibo ' + r.numero;
+    clearTimeout(rcTimer);
+    rcTimer = setTimeout(function(){
+      var iframe = document.getElementById('doc-iframe');
+      if(!iframe) return;
+      iframe.onload = function(){ ajustarAltura(iframe); setTimeout(function(){ ajustarAltura(iframe); }, 300); };
+      iframe.srcdoc = construirReciboFxHtml(r);
+    }, 130);
+  };
+
+  /* ---------- template do recibo (mesmo padrão premium das facturas) ---------- */
+  window.construirReciboFxHtml = function(r){
+    var contactoCli = [
+      r.nif ? '<div>NIF: '+esc(r.nif)+'</div>' : '',
+      r.end ? '<div>'+esc(r.end)+'</div>' : ''
+    ].join('');
+    var detalhes = [];
+    if(r.metodo) detalhes.push(['M&eacute;todo de pagamento', esc(r.metodo)]);
+    if(r.ref)    detalhes.push(['Referente a', esc(r.ref)]);
+    if(r.data)   detalhes.push(['Data do pagamento', esc(fmtDataLonga(r.data))]);
+    var linhasDet = detalhes.map(function(p){
+      return '<tr><td class="dt-lbl">'+p[0]+'</td><td class="dt-val">'+p[1]+'</td></tr>';
+    }).join('');
+    var notaHtml = r.nota ? '<p class="nota">'+esc(r.nota)+'</p>' : '';
+
+    return '<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Recibo '+esc(r.numero)+' — TKD</title>'
+    + '<style>'
+    + '@import url(\'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap\');'
+    + ':root{--preto:#26190F;--cinza:#897764;--linha:#E8DBC4;--linha-forte:#D8C5A4;--branco:#FFFCF5;--dourado:#B89352;--tijolo:#9C5A2E;--azul-oceano:#476468;--verde:#5C6B43;}'
+    + '*{box-sizing:border-box;}html,body{margin:0;padding:0;background:transparent;}'
+    + 'body{font-family:\'Plus Jakarta Sans\',-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;color:var(--preto);-webkit-font-smoothing:antialiased;}'
+    + '.folha{max-width:680px;margin:0 auto;background:var(--branco);border-radius:18px;box-shadow:0 8px 26px rgba(40,26,12,0.14);overflow:hidden;position:relative;}'
+    + '.faixa-topo{height:7px;background:linear-gradient(90deg,var(--dourado),var(--tijolo) 55%,var(--azul-oceano));}'
+    + '.conteudo{padding:38px 44px 30px;}'
+    + '.cabeca{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding-bottom:22px;border-bottom:1px solid var(--linha);}'
+    + '.marca img{height:60px;width:auto;display:block;border-radius:12px;}'
+    + '.tit-doc{text-align:right;}'
+    + '.tit-doc h1{margin:0;font-size:2rem;font-weight:800;letter-spacing:2px;color:var(--preto);line-height:1;}'
+    + '.tit-doc .meta{margin-top:10px;font-size:0.82rem;color:var(--cinza);line-height:1.7;}'
+    + '.tit-doc .meta b{color:var(--preto);font-weight:600;}'
+    + '.bloco{padding:24px 0 8px;}'
+    + '.rotulo{font-size:0.66rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--dourado);font-weight:700;margin-bottom:8px;}'
+    + '.nome{font-size:1.05rem;font-weight:700;margin-bottom:4px;}'
+    + '.contacto{font-size:0.82rem;color:var(--cinza);line-height:1.65;}'
+    + '.valor-caixa{margin-top:14px;background:linear-gradient(135deg,rgba(184,147,82,0.12),rgba(156,90,46,0.08));border:1px solid var(--linha-forte);border-radius:14px;padding:20px 24px;display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;}'
+    + '.valor-caixa .lbl{font-size:0.68rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--cinza);font-weight:700;}'
+    + '.valor-caixa .num{font-size:1.7rem;font-weight:800;color:var(--preto);white-space:nowrap;}'
+    + 'table.det{width:100%;border-collapse:collapse;margin-top:20px;}'
+    + 'table.det td{padding:10px 6px;border-bottom:1px solid var(--linha);font-size:0.9rem;vertical-align:top;}'
+    + '.dt-lbl{color:var(--cinza);width:44%;}'
+    + '.dt-val{font-weight:600;}'
+    + '.nota{margin:20px 0 0;font-size:0.84rem;color:var(--cinza);line-height:1.7;}'
+    + '.assin{margin-top:44px;display:flex;justify-content:flex-end;}'
+    + '.assin .lin{text-align:center;min-width:230px;}'
+    + '.assin .traco{border-top:1.5px solid var(--linha-forte);padding-top:8px;font-size:0.78rem;color:var(--cinza);}'
+    + '.rodape{margin-top:30px;padding-top:16px;border-top:1px solid var(--linha);font-size:0.7rem;color:var(--cinza);line-height:1.7;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}'
+    + '@media print{body{background:#fff;}.folha{box-shadow:none;border-radius:0;max-width:none;}}'
+    + '</style></head><body>'
+    + '<div class="folha"><div class="faixa-topo"></div><div class="conteudo">'
+    + '<div class="cabeca">'
+    + '<div class="marca"><img src="'+LOGO_FULL_DARK+'" alt="TKD — The Koncept Design"></div>'
+    + '<div class="tit-doc"><h1>RECIBO</h1><div class="meta"><div>N.&ordm;: <b>'+esc(r.numero)+'</b></div>'
+    + (r.data ? '<div>Emitido a: <b>'+esc(fmtDataLonga(r.data))+'</b></div>' : '')
+    + '</div></div>'
+    + '</div>'
+    + '<div class="bloco">'
+    + '<div class="rotulo">Recebemos de</div>'
+    + '<div class="nome">'+(esc(r.nome)||'&mdash;')+'</div>'
+    + '<div class="contacto">'+contactoCli+'</div>'
+    + '<div class="valor-caixa"><span class="lbl">A quantia de</span><span class="num">'+esc(formatarKz(r.valor))+'</span></div>'
+    + (linhasDet ? '<table class="det">'+linhasDet+'</table>' : '')
+    + notaHtml
+    + '</div>'
+    + '<div class="assin"><div class="lin"><div style="height:42px;"></div><div class="traco">The Koncept Design</div></div></div>'
+    + '<div class="rodape"><span>Recibo de pagamento &mdash; The Koncept Design</span><span>Documento gerado eletronicamente.</span></div>'
+    + '</div></div>'
+    + '</body></html>';
+  };
+
+  /* ---------- preencher cliente a partir do registo existente ---------- */
+  window.rcPreencherCliente = function(nome){
+    try{
+      var chave = normalizarChave(nome);
+      if(!chave) return;
+      var c = lerClientes().find(function(x){ return normalizarChave(x.nome) === chave; });
+      if(!c) return;
+      if(!rcVal('rc-nif') && c.nif) setVal('rc-nif', c.nif);
+      if(!rcVal('rc-end') && c.end) setVal('rc-end', c.end);
+      rcAtualizar();
+    }catch(e){}
+  };
+
+  /* ---------- limpar / novo recibo ---------- */
+  window.rcLimpar = function(){
+    ['rc-nome','rc-nif','rc-end','rc-valor','rc-ref','rc-nota'].forEach(function(id){ setVal(id,''); });
+    setVal('rc-data', new Date().toISOString().slice(0,10));
+    rcNumeroEditado = false;
+    setVal('rc-numero', sugerirNumeroRecibo());
+    rcFacturaLigada = null;
+    rcAtualizar();
+  };
+
+  /* ---------- emitir e arquivar o recibo ---------- */
+  window.guardarReciboFx = function(){
+    var r = rcDados();
+    if(!(r.valor > 0)){ toast('Indique o valor recebido antes de emitir o recibo.'); return; }
+    var htmlRec = construirReciboFxHtml(r);
+    var d = {
+      tipo:'recibo',
+      numeroRec: r.numero,
+      numero: r.numero,
+      emissao: r.data || '',
+      validade:'',
+      emit:{}, cli:{ nome:r.nome, nif:r.nif, end:r.end },
+      itens:[], subtotal:0, descPct:0, descVal:0, ivaPct:0, ivaVal:0,
+      total: r.valor,
+      obra:'',
+      metodo: r.metodo, ref: r.ref,
+      reciboHtml: htmlRec
+    };
+    var docs = lerDocs();
+    docs.unshift({ id:'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), savedAt:new Date().toISOString(), d:d });
+
+    /* se nasceu de uma factura, marca-a automaticamente como paga */
+    var marcouPaga = false;
+    if(rcFacturaLigada){
+      var recF = docs.find(function(x){ return x.id === rcFacturaLigada; });
+      if(recF && recF.d && recF.d.tipo === 'factura' && recF.estado !== 'paga'){
+        recF.estado = 'paga'; marcouPaga = true;
+      }
+    }
+    guardarDocs(docs);
+    guardarSeq('recibo', lerSeq('recibo') + 1);
+    atualizarContagens();
+    if(typeof sincronizarAgora === 'function') sincronizarAgora();
+    if(typeof atualizarDashboard === 'function') atualizarDashboard();
+    var ov = document.getElementById('arq-overlay');
+    if(ov && ov.classList.contains('aberto')) renderArquivo(arqTabAtual);
+    toast('Recibo ' + r.numero + ' emitido e guardado nos documentos.' + (marcouPaga ? ' Factura marcada como paga.' : ''));
+
+    /* emitir aciona a exportação (Guardar PDF), como nas facturas */
+    try{
+      var ifr = document.getElementById('doc-iframe');
+      if(ifr && ifr.contentWindow){ ifr.contentWindow.focus(); ifr.contentWindow.print(); }
+    }catch(e){}
+    setTimeout(function(){ rcLimpar(); }, 600);
+  };
+
+  /* ---------- emitir recibo a partir de uma factura do arquivo ---------- */
+  window.reciboDaFactura = function(id){
+    var rec = lerDocs().find(function(x){ return x.id === id; });
+    if(!rec || !rec.d) return;
+    var d = rec.d;
+    if(typeof fecharArquivo === 'function') fecharArquivo();
+    setTipo('recibo');
+    setVal('rc-nome', (d.cli && d.cli.nome) || '');
+    setVal('rc-nif',  (d.cli && d.cli.nif)  || '');
+    setVal('rc-end',  (d.cli && d.cli.end)  || '');
+    setVal('rc-valor', d.total != null ? String(d.total) : '');
+    setVal('rc-ref', 'Factura ' + (d.numero || ''));
+    setVal('rc-data', new Date().toISOString().slice(0,10));
+    rcNumeroEditado = false;
+    setVal('rc-numero', sugerirNumeroRecibo());
+    rcFacturaLigada = id;
+    rcAtualizar();
+    toast('Recibo pré-preenchido a partir da factura ' + (d.numero || '') + '. Reveja e toque em "Emitir recibo".');
+  };
 
   })();
   </script>
